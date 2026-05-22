@@ -31,7 +31,7 @@
   "files": [
     "dist",
     "themes",
-    "marp.config.json"
+    "marp.config.mjs"
   ],
   "scripts": {
     "build": "tsc",
@@ -41,7 +41,9 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.30.0",
-    "@marp-team/marp-cli": "^4.0.0"
+    "@marp-team/marp-cli": "^4.0.0",
+    "markdown-it-footnote": "^4.0.0",
+    "markdown-it-task-lists": "^2.1.1"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

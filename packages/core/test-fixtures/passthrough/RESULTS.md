@@ -109,7 +109,7 @@ export default ({ marp }) => marp.use(taskLists).use(footnote)
 Step 1 完成判定:
 
 - [x] **A3.1: `marp.config.json` 追加で math + html 有効化（2026-05-22 完了）**
-- [ ] A3.2: task list + footnote plugin 組込
+- [x] **A3.2: task list + footnote plugin 組込（2026-05-22 完了、`.json` → `.mjs` に変換し engine 経由）**
 - [ ] A1: カスタム CSS テーマ持込（既知の制約として明記済み、別 Phase）
 - [ ] A3.3: Mermaid（後回し）
 
@@ -164,4 +164,46 @@ A1（カスタム CSS 持込）と A3.1（math/html 有効化）が Phase A の 
 - AI 生成 markdown は信頼前提で OK
 - 外部から渡される markdown は sanitize（DOMPurify 等）を挟むレイヤを追加
 - 動的 CTA 路線で B2B 顧客がエンドユーザー入力を扱う場合、Atom-MarpRenderer の責務外で sanitize する設計にする
+
+---
+
+## A3.2 適用後の再検証（2026-05-22）
+
+`marp.config.json` を `marp.config.mjs` に変換し、`markdown-it-task-lists` + `markdown-it-footnote` を engine プラグインとして組込。
+
+### 設定内容
+
+```js
+// packages/core/marp.config.mjs
+import markdownItTaskLists from 'markdown-it-task-lists'
+import markdownItFootnote from 'markdown-it-footnote'
+
+export default {
+  html: true,
+  math: 'katex',
+  engine: ({ marp }) => marp.use(markdownItTaskLists).use(markdownItFootnote),
+}
+```
+
+### 再 passthrough 結果
+
+| 機能 | 前 (A3.1 後) | 後 (A3.2 後) | 備考 |
+|---|---|---|---|
+| **タスクリスト `- [x]`** | ❌ | ✅ | `<input class="task-list-item-checkbox" checked="" disabled="" type="checkbox">` 生成、checked 状態も保持 |
+| **脚注 `[^1]`** | ❌ | ✅ | `<sup class="footnote-ref">` + `id="fn1"` + 末尾の footnote section が生成 |
+| **Mermaid** | ❌ | ❌ | 変わらず（別途 plugin / プリプロセス要） |
+| 既存の ✅ 機能（Math / HTML 等）| ✅ | ✅ | 回帰なし |
+
+### 副作用検証
+
+- 既存 62 テスト全 pass
+- 出力 HTML サイズ: 143,427 bytes → 144,690 bytes（+1,263 bytes、footnote section 等）
+- レンダ時間: 体感差なし
+
+### Step 1 達成度
+
+**85% → 92%**（task list + footnote の 2 つが解消）
+
+残り未対応:
+- Mermaid のみ（フローチャート / シーケンス図、Marp で実用品質出すのは工数大、後回し）
 

@@ -41,10 +41,12 @@ function resolveMarpBin(): string {
   return _marpBinPath
 }
 
-// Marp 設定ファイル (math: 'katex' / html: true 等) の絶対パスを resolve。
-// `packages/core/marp.config.json` を `--config` で marp-cli に渡す。
+// Marp 設定ファイル (math / html / engine plugin 等) の絶対パスを resolve。
+// `packages/core/marp.config.mjs` を `--config` で marp-cli に渡す。
+// mjs を使う理由: engine プラグイン (markdown-it-task-lists / footnote) を import して
+// 関数形式で渡すため、JSON では表現不可。
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const MARP_CONFIG_PATH = path.resolve(__dirname, '../../marp.config.json')
+const MARP_CONFIG_PATH = path.resolve(__dirname, '../../marp.config.mjs')
 
 // ===== 入力型 (discriminated union) =====
 
