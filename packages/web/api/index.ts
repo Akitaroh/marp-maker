@@ -4,7 +4,10 @@
  * routes:
  * - POST /api/generate → Atom-AiGenerator (Claude API)
  * - POST /api/render   → Atom-MarpRenderer (HTML)
- * - POST /api/export   → Atom-MarpRenderer (PDF binary)
+ * - POST /api/export   → Atom-MarpRenderer (PDF / PPTX / PNG binary)
+ *
+ * A5 (2026-05-22): /api/export を format 動的選択（pdf / pptx / png）に拡張。
+ * PPTX は LibreOffice headless 依存（deploy 環境注意）。
  *
  * 本番では Vercel Serverless Functions に置換予定 (MVP 後)。
  */
@@ -155,39 +158,91 @@ export function apiPlugin(): Plugin {
         }
       })
 
-      // POST /api/export (PDF binary)
+      // POST /api/export (PDF / PPTX / PNG binary)
+      // A5 で拡張: body.format で動的選択。後方互換: format 未指定なら pdf
       server.middlewares.use('/api/export', async (req, res, next) => {
         if (req.method !== 'POST') return next()
         let themePath: string | null = null
-        let pdfPath: string | null = null
+        let outputPath: string | null = null
         try {
           const body = (await readJsonBody(req)) as {
             markdown: string
             theme?: ThemeSelection
             themeId?: string  // legacy
+            format?: 'pdf' | 'pptx' | 'png'
+            pdf?: { outlines?: boolean; notes?: boolean }
           }
           themePath = await resolveThemePath(parseThemeFromBody(body))
-          const result = await renderMarp({
-            markdown: body.markdown,
-            themePath,
-            format: 'pdf',
-          })
-          if (result.format !== 'pdf') {
-            sendJson(res, 500, { error: 'unexpected format' })
+          const format = body.format ?? 'pdf'
+
+          if (format === 'pdf') {
+            const result = await renderMarp({
+              markdown: body.markdown,
+              themePath,
+              format: 'pdf',
+              outlines: body.pdf?.outlines,
+              notes: body.pdf?.notes,
+            })
+            if (result.format !== 'pdf') {
+              sendJson(res, 500, { error: 'unexpected format' })
+              return
+            }
+            outputPath = result.filePath
+            const buf = await fs.readFile(outputPath)
+            res.statusCode = 200
+            res.setHeader('Content-Type', 'application/pdf')
+            res.setHeader('Content-Length', buf.length.toString())
+            res.end(buf)
+          } else if (format === 'pptx') {
+            const result = await renderMarp({
+              markdown: body.markdown,
+              themePath,
+              format: 'pptx',
+            })
+            if (result.format !== 'pptx') {
+              sendJson(res, 500, { error: 'unexpected format' })
+              return
+            }
+            outputPath = result.filePath
+            const buf = await fs.readFile(outputPath)
+            res.statusCode = 200
+            res.setHeader(
+              'Content-Type',
+              'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+            )
+            res.setHeader('Content-Length', buf.length.toString())
+            res.end(buf)
+          } else if (format === 'png') {
+            // PNG: 全ページ分の Buffer 配列。ここでは ZIP 圧縮して 1 ファイル化する設計もあるが、
+            // MVP の A5 では 1 ページ目のみ返す（簡易）。複数ページ対応は後段で。
+            const result = await renderMarp({
+              markdown: body.markdown,
+              themePath,
+              format: 'png',
+            })
+            if (result.format !== 'png') {
+              sendJson(res, 500, { error: 'unexpected format' })
+              return
+            }
+            const first = result.pngBuffers[0]
+            if (!first) {
+              sendJson(res, 500, { error: 'no PNG generated' })
+              return
+            }
+            res.statusCode = 200
+            res.setHeader('Content-Type', 'image/png')
+            res.setHeader('Content-Length', first.length.toString())
+            res.end(first)
+          } else {
+            sendJson(res, 400, { error: `Unknown format: ${String(format)}` })
             return
           }
-          pdfPath = result.filePath
-          const pdfBuffer = await fs.readFile(pdfPath)
-          res.statusCode = 200
-          res.setHeader('Content-Type', 'application/pdf')
-          res.setHeader('Content-Length', pdfBuffer.length.toString())
-          res.end(pdfBuffer)
         } catch (e) {
           console.error('[api/export] error:', e)
           sendJson(res, 500, errorBody(e))
         } finally {
           if (themePath) await fs.unlink(themePath).catch(() => undefined)
-          if (pdfPath) await fs.unlink(pdfPath).catch(() => undefined)
+          if (outputPath) await fs.unlink(outputPath).catch(() => undefined)
         }
       })
     },

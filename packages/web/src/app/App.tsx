@@ -15,7 +15,12 @@ import { useCallback, useState } from 'react'
 import { Editor } from '../editor/Editor'
 import { GenerateDialog, type GenerateInput } from '../editor/GenerateDialog'
 import { Preview, type RenderFn } from '../preview/Preview'
-import { Export, type ExportResult, type ExportStatus } from '../export/Export'
+import {
+  Export,
+  type ExportOptions,
+  type ExportResult,
+  type ExportStatus,
+} from '../export/Export'
 import {
   ThemeSwitcher,
   type BundledThemeOption,
@@ -148,14 +153,19 @@ export function App(): JSX.Element {
 
   // ===== Export handler =====
 
-  const handleExport = async (): Promise<ExportResult> => {
+  const handleExport = async (opts: ExportOptions): Promise<ExportResult> => {
     setExportStatus('rendering')
     setExportError(undefined)
     try {
       const response = await fetch('/api/export', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ markdown, theme: currentTheme }),
+        body: JSON.stringify({
+          markdown,
+          theme: currentTheme,
+          format: opts.format,
+          pdf: opts.format === 'pdf' ? opts.pdf : undefined,
+        }),
       })
       if (!response.ok) {
         const err = (await response.json().catch(() => ({}))) as {
@@ -167,8 +177,14 @@ export function App(): JSX.Element {
       const url = URL.createObjectURL(blob)
       const ymd = new Date().toISOString().slice(0, 10)
       const hm = new Date().toTimeString().slice(0, 5).replace(':', '-')
-      const filename = `whitepaper-${ymd}-${hm}.pdf`
-      const result: ExportResult = { url, filename, sizeBytes: blob.size }
+      const ext = opts.format === 'pdf' ? 'pdf' : opts.format === 'pptx' ? 'pptx' : 'png'
+      const filename = `whitepaper-${ymd}-${hm}.${ext}`
+      const result: ExportResult = {
+        url,
+        filename,
+        sizeBytes: blob.size,
+        format: opts.format,
+      }
       setExportResult(result)
       setExportStatus('ready')
       return result

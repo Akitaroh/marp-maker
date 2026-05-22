@@ -57,12 +57,18 @@ export type RenderInput =
       themePath: string
       format: 'pdf'
       outlines?: boolean
+      notes?: boolean  // A5 で追加: --pdf-notes（speaker notes を annotation 化）
     }
   | {
       markdown: string
       themePath: string
       format: 'png'
       pageRange?: [number, number]
+    }
+  | {
+      markdown: string
+      themePath: string
+      format: 'pptx'  // A5 で追加。LibreOffice headless 依存
     }
 
 // ===== 出力型 (discriminated union) =====
@@ -71,6 +77,7 @@ export type RenderOutput =
   | { format: 'html'; htmlString: string }
   | { format: 'pdf'; filePath: string }
   | { format: 'png'; pngBuffers: Buffer[] }
+  | { format: 'pptx'; filePath: string }  // A5 で追加、PDF と同じ「一時ファイル提供」パターン
 
 // ===== エラー型 =====
 
@@ -131,7 +138,7 @@ function buildArgs(
   themePath: string,
   outPath: string
 ): string[] {
-  // --config: marp.config.json で math/html を有効化（A3.1 で追加）
+  // --config: marp.config.mjs で math/html/engine plugin を有効化（A3.1 / A3.2 で追加）
   const common = [
     mdPath,
     '--config',
@@ -148,11 +155,15 @@ function buildArgs(
         ...common,
         '--pdf',
         ...(input.outlines ? ['--pdf-outlines'] : []),
+        ...(input.notes ? ['--pdf-notes'] : []),  // A5
         '-o',
         outPath,
       ]
     case 'png':
       return [...common, '--images', 'png']
+    case 'pptx':
+      // A5: PPTX 出力。marp-cli 内部で LibreOffice headless を呼ぶ
+      return [...common, '--pptx', '-o', outPath]
   }
 }
 
@@ -258,11 +269,18 @@ async function readPngOutputs(
   return buffers
 }
 
-async function copyPdfToStablePath(tmpDir: string): Promise<string> {
-  const src = path.join(tmpDir, 'out.pdf')
+/**
+ * 内部 tmpDir 内の生成ファイルを OS tmpdir に独立コピー、安定パスを返す。
+ * PDF / PPTX 共通の「一時ファイル提供」パターン。
+ *
+ * @param tmpDir 内部 tmpDir
+ * @param ext 拡張子 ('pdf' | 'pptx')
+ */
+async function copyToStablePath(tmpDir: string, ext: 'pdf' | 'pptx'): Promise<string> {
+  const src = path.join(tmpDir, `out.${ext}`)
   const dest = path.join(
     os.tmpdir(),
-    `marp-pdf-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.pdf`
+    `marp-${ext}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
   )
   const buffer = await fs.readFile(src)
   await fs.writeFile(dest, buffer)
@@ -272,11 +290,15 @@ async function copyPdfToStablePath(tmpDir: string): Promise<string> {
 // ===== 公開 API =====
 
 /**
- * Marp Markdown を HTML/PDF/PNG にレンダする。
+ * Marp Markdown を HTML/PDF/PNG/PPTX にレンダする。
  *
- * 内部で marp-cli (npx) を子プロセス起動し、一時ディレクトリで作業する。
+ * 内部で marp-cli を子プロセス起動し、一時ディレクトリで作業する。
  * 成功時は format に応じた RenderOutput を返し、内部一時ディレクトリは削除する。
- * PDF の場合は OS tmpdir に独立 path をコピーし、呼出側がパスを保持して使用後に削除する。
+ * PDF / PPTX の場合は OS tmpdir に独立 path をコピーし、呼出側がパスを保持して使用後に削除する。
+ *
+ * 注意: PPTX 出力は marp-cli 内部で LibreOffice headless を呼ぶため、
+ *       実行環境に LibreOffice がインストールされている必要がある。
+ *       未搭載環境では `kind: 'render-failed'` が throw される。
  */
 export async function renderMarp(input: RenderInput): Promise<RenderOutput> {
   // theme path 事前確認
@@ -332,12 +354,17 @@ export async function renderMarp(input: RenderInput): Promise<RenderOutput> {
         return { format: 'html', htmlString }
       }
       case 'pdf': {
-        const filePath = await copyPdfToStablePath(tmpDir)
+        const filePath = await copyToStablePath(tmpDir, 'pdf')
         return { format: 'pdf', filePath }
       }
       case 'png': {
         const pngBuffers = await readPngOutputs(tmpDir, input.pageRange)
         return { format: 'png', pngBuffers }
+      }
+      case 'pptx': {
+        // A5: PPTX 出力。LibreOffice headless 必要、未搭載環境では classifyError が render-failed を返す
+        const filePath = await copyToStablePath(tmpDir, 'pptx')
+        return { format: 'pptx', filePath }
       }
     }
   } finally {
