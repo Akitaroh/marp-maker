@@ -17,6 +17,7 @@ import { spawn } from 'node:child_process'
 import { promises as fs } from 'node:fs'
 import * as path from 'node:path'
 import * as os from 'node:os'
+import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
 
 // @marp-team/marp-cli の bin (marp) の絶対パスを resolve。
@@ -39,6 +40,11 @@ function resolveMarpBin(): string {
   _marpBinPath = path.resolve(path.dirname(cliPkgJsonPath), marpBinRel)
   return _marpBinPath
 }
+
+// Marp 設定ファイル (math: 'katex' / html: true 等) の絶対パスを resolve。
+// `packages/core/marp.config.json` を `--config` で marp-cli に渡す。
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const MARP_CONFIG_PATH = path.resolve(__dirname, '../../marp.config.json')
 
 // ===== 入力型 (discriminated union) =====
 
@@ -123,7 +129,15 @@ function buildArgs(
   themePath: string,
   outPath: string
 ): string[] {
-  const common = [mdPath, '--theme', themePath, '--allow-local-files']
+  // --config: marp.config.json で math/html を有効化（A3.1 で追加）
+  const common = [
+    mdPath,
+    '--config',
+    MARP_CONFIG_PATH,
+    '--theme',
+    themePath,
+    '--allow-local-files',
+  ]
   switch (input.format) {
     case 'html':
       return [...common, '-o', outPath]

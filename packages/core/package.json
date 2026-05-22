@@ -30,7 +30,8 @@
   },
   "files": [
     "dist",
-    "themes"
+    "themes",
+    "marp.config.json"
   ],
   "scripts": {
     "build": "tsc",
