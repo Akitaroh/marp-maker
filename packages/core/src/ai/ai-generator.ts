@@ -146,14 +146,14 @@ ${input.themeId}
 }
 
 function buildAssistantPrefill(themeId: string): string {
+  // 注意: Anthropic API は assistant の最終メッセージ末尾の whitespace を拒否する。
+  // そのため prefill 末尾には改行を入れない。結合時に '\n\n' を差し込む。
   return `---
 marp: true
 theme: ${themeId}
 size: A4
 paginate: true
----
-
-`
+---`
 }
 
 // ===== 内部ロジック =====
@@ -305,7 +305,8 @@ export async function generateMarp(
       })
 
       const assistantText = extractTextContent(response.content)
-      const markdown = prefill + assistantText
+      // prefill は末尾改行を含まない (API 仕様)。結合時に改行を差し込む。
+      const markdown = prefill + '\n\n' + assistantText
 
       validateOutput(markdown, input)
 

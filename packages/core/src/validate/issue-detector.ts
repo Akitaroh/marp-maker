@@ -12,7 +12,7 @@
 
 import Anthropic from '@anthropic-ai/sdk'
 
-import { renderMarp, type RenderInput, type RenderOutput } from '../marp/marp-renderer'
+import { renderMarp, type RenderInput, type RenderOutput } from '../marp/marp-renderer.js'
 
 // ===== Issue 型 (FixSuggester が import する SoT) =====
 

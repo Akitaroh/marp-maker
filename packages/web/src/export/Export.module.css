@@ -1,0 +1,88 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.exportButton {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  background: #0066cc;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.exportButton:hover:not(:disabled) {
+  background: #0052a3;
+}
+
+.exportButton:disabled {
+  background: #999;
+  cursor: not-allowed;
+}
+
+.progress {
+  padding: 8px 12px;
+  background: #f0f7ff;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #555;
+}
+
+.downloadArea {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.downloadLink {
+  display: inline-block;
+  padding: 8px 12px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.downloadLink:hover {
+  background: #d4ebd6;
+}
+
+.sizeWarning {
+  font-size: 12px;
+  color: #f57c00;
+}
+
+.errorBox {
+  padding: 12px;
+  background: #ffebee;
+  border-left: 4px solid #c62828;
+  border-radius: 4px;
+}
+
+.errorMessage {
+  margin: 0 0 8px;
+  color: #c62828;
+  font-size: 13px;
+}
+
+.retryButton {
+  padding: 6px 12px;
+  font-size: 13px;
+  background: #c62828;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.retryButton:hover {
+  background: #a71d1d;
+}

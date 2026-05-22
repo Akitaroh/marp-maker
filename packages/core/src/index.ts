@@ -12,7 +12,7 @@
  * 設計 doc: 50_Mission/zddmission/MarpMaker/
  */
 
-export * from './theme'
-export * from './marp'
-export * from './ai'
-export * from './validate'
+export * from './theme/index.js'
+export * from './marp/index.js'
+export * from './ai/index.js'
+export * from './validate/index.js'

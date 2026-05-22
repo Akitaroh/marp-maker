@@ -12,7 +12,7 @@
 
 import Anthropic from '@anthropic-ai/sdk'
 
-import type { Issue, Severity } from './issue-detector'
+import type { Issue, Severity } from './issue-detector.js'
 
 // ===== 入力型 =====
 

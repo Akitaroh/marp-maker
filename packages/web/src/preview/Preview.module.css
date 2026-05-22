@@ -1,0 +1,70 @@
+.container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: auto;
+  padding: 16px;
+}
+
+.iframeWrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.iframe {
+  /* A4 縦 (793 x 1122 @96dpi) */
+  width: 793px;
+  height: 1122px;
+  border: 1px solid #ddd;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.statusOverlay {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  padding: 8px 12px;
+  background: rgba(0, 102, 204, 0.9);
+  color: white;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.errorOverlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 16px 20px;
+  background: white;
+  border-left: 4px solid #c62828;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-width: 80%;
+}
+
+.errorTitle {
+  margin: 0 0 8px;
+  color: #c62828;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.errorMessage {
+  margin: 0;
+  color: #555;
+  font-size: 13px;
+  font-family: 'SF Mono', Consolas, monospace;
+}
+
+.placeholder {
+  color: #888;
+  font-size: 14px;
+  padding: 80px 20px;
+}

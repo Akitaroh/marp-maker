@@ -5,7 +5,7 @@
  * 設計 doc: 50_Mission/zddmission/MarpMaker/Atom-ThemeData.md
  */
 
-import type { ThemeData, ThemeSize } from './theme-schema'
+import type { ThemeData, ThemeSize } from './theme-schema.js'
 
 // ===== 内部定数 =====
 

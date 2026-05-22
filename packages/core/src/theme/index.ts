@@ -7,12 +7,12 @@
  * - ThemeLoader (Logic Atom): CSS ファイル読込 + メタデータ抽出
  */
 
-export type { ThemeData, ThemeSize, ThemeId } from './theme-schema'
+export type { ThemeData, ThemeSize, ThemeId } from './theme-schema.js'
 export {
   ThemeDataValidationError,
   isValidThemeData,
   assertValidThemeData,
-} from './theme-validator'
-export type { ThemeDataValidationErrorKind } from './theme-validator'
-export { loadTheme, ThemeLoaderError } from './theme-loader'
-export type { ThemeLoadInput, ThemeLoaderErrorKind } from './theme-loader'
+} from './theme-validator.js'
+export type { ThemeDataValidationErrorKind } from './theme-validator.js'
+export { loadTheme, ThemeLoaderError } from './theme-loader.js'
+export type { ThemeLoadInput, ThemeLoaderErrorKind } from './theme-loader.js'

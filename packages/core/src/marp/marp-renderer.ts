@@ -17,6 +17,28 @@ import { spawn } from 'node:child_process'
 import { promises as fs } from 'node:fs'
 import * as path from 'node:path'
 import * as os from 'node:os'
+import { createRequire } from 'node:module'
+
+// @marp-team/marp-cli の bin (marp) の絶対パスを resolve。
+// `npx @marp-team/marp-cli` だと bin 解決が PATH 依存で限定環境（Vite middleware）で失敗するため、
+// node + bin の JS ファイルを直接 spawn する。
+const require = createRequire(import.meta.url)
+let _marpBinPath: string | null = null
+
+function resolveMarpBin(): string {
+  if (_marpBinPath != null) return _marpBinPath
+  const cliPkgJsonPath = require.resolve('@marp-team/marp-cli/package.json')
+  const cliPkg = require('@marp-team/marp-cli/package.json') as {
+    bin: string | Record<string, string>
+  }
+  const marpBinRel =
+    typeof cliPkg.bin === 'string' ? cliPkg.bin : cliPkg.bin.marp
+  if (!marpBinRel) {
+    throw new Error('Failed to resolve marp bin from @marp-team/marp-cli')
+  }
+  _marpBinPath = path.resolve(path.dirname(cliPkgJsonPath), marpBinRel)
+  return _marpBinPath
+}
 
 // ===== 入力型 (discriminated union) =====
 
@@ -128,7 +150,20 @@ function runMarpCli(
   timeoutMs: number
 ): Promise<ProcessResult> {
   return new Promise((resolve, reject) => {
-    const child = spawn('npx', ['-y', '@marp-team/marp-cli', ...args], {
+    // node で marp.js を直接実行 (bin 解決を回避)
+    let marpBin: string
+    try {
+      marpBin = resolveMarpBin()
+    } catch (e) {
+      reject(
+        new RenderError({
+          kind: 'cli-not-found',
+          message: (e as Error).message,
+        })
+      )
+      return
+    }
+    const child = spawn(process.execPath, [marpBin, ...args], {
       stdio: ['ignore', 'pipe', 'pipe'],
     })
 

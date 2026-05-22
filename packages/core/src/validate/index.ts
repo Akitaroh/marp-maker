@@ -4,7 +4,7 @@
  * 視覚検証ループ (Atom-IssueDetector + Atom-FixSuggester)。
  */
 
-export { detectIssues } from './issue-detector'
+export { detectIssues } from './issue-detector.js'
 export type {
   Issue,
   IssueType,
@@ -12,12 +12,12 @@ export type {
   DetectInput,
   IssueDetectorOptions,
   RendererFn,
-} from './issue-detector'
+} from './issue-detector.js'
 
-export { suggestFix, SuggesterError } from './fix-suggester'
+export { suggestFix, SuggesterError } from './fix-suggester.js'
 export type {
   SuggestInput,
   SuggestedMarp,
   SuggesterOptions,
   SuggesterErrorKind,
-} from './fix-suggester'
+} from './fix-suggester.js'

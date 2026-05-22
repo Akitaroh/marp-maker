@@ -13,11 +13,11 @@ import { promises as fs } from 'node:fs'
 import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import type { ThemeData, ThemeId } from './theme-schema'
+import type { ThemeData, ThemeId } from './theme-schema.js'
 import {
   ThemeDataValidationError,
   assertValidThemeData,
-} from './theme-validator'
+} from './theme-validator.js'
 
 // ===== 内部定数 =====
 

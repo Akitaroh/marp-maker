@@ -1,0 +1,69 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #fafafa;
+}
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid #e0e0e0;
+  background: white;
+}
+
+.generateButton,
+.validateButton {
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  background: white;
+  color: #333;
+  transition: all 0.15s ease;
+}
+
+.generateButton:hover:not(:disabled) {
+  background: #f0f7ff;
+  border-color: #0066cc;
+  color: #0066cc;
+}
+
+.validateButton:hover:not(:disabled) {
+  background: #fff7e6;
+  border-color: #f57c00;
+  color: #f57c00;
+}
+
+.generateButton:disabled,
+.validateButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.textarea {
+  flex: 1;
+  width: 100%;
+  border: none;
+  outline: none;
+  padding: 16px;
+  font-family: 'SF Mono', Consolas, 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  background: #fafafa;
+  color: #1a1a1a;
+  resize: none;
+  box-sizing: border-box;
+}
+
+.textarea:focus {
+  background: #fff;
+}
+
+.textarea[readonly] {
+  background: #f0f0f0;
+  color: #888;
+}
