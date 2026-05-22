@@ -140,3 +140,52 @@ describe('loadTheme - validation', () => {
     })
   })
 })
+
+describe('loadTheme - themeContent (A1, CSS string direct)', () => {
+  it('loads theme from CSS content string without file I/O', async () => {
+    const cssContent = validCss('inmemory-theme', 'A4', 793, 1122)
+    const theme = await loadTheme({ themeContent: cssContent })
+    expect(theme.id).toBe('inmemory-theme')
+    expect(theme.size).toEqual({ name: 'A4', width: 793, height: 1122 })
+    expect(theme.cssContent).toBe(cssContent)
+  })
+
+  it('parses size correctly for different page formats', async () => {
+    const cssContent = validCss('slide-theme', 'sixteen-nine', 1280, 720)
+    const theme = await loadTheme({ themeContent: cssContent })
+    expect(theme.size).toEqual({ name: 'sixteen-nine', width: 1280, height: 720 })
+  })
+
+  it('throws metadata-missing for empty content', async () => {
+    try {
+      await loadTheme({ themeContent: '' })
+      expect.fail('should have thrown')
+    } catch (e) {
+      expect(e).toBeInstanceOf(ThemeLoaderError)
+      expect((e as ThemeLoaderError).kind).toBe('metadata-missing')
+    }
+  })
+
+  it('throws metadata-missing when @theme is absent', async () => {
+    const cssContent = `/* @size A4 793px 1122px */ section { width: 793px; }`
+    try {
+      await loadTheme({ themeContent: cssContent })
+      expect.fail('should have thrown')
+    } catch (e) {
+      expect(e).toBeInstanceOf(ThemeLoaderError)
+      expect((e as ThemeLoaderError).kind).toBe('metadata-missing')
+    }
+  })
+
+  it('throws validation-failed for invalid theme id', async () => {
+    const cssContent = validCss('BadCasing', 'A4', 793, 1122)
+    try {
+      await loadTheme({ themeContent: cssContent })
+      expect.fail('should have thrown')
+    } catch (e) {
+      expect(e).toBeInstanceOf(ThemeLoaderError)
+      expect((e as ThemeLoaderError).kind).toBe('validation-failed')
+      expect((e as ThemeLoaderError).path).toBe('<in-memory>')
+    }
+  })
+})

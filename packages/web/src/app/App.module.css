@@ -28,6 +28,21 @@
   font-size: 16px;
   font-weight: 600;
   letter-spacing: 0.02em;
+  margin-right: auto;
+}
+
+.themeArea {
+  /* ThemeSwitcher を header 内に収める。
+     dark header の上で読みやすいよう label を白に上書き。 */
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 16px;
+}
+
+.themeArea label {
+  color: white;
 }
 
 .exportArea {

@@ -33,6 +33,7 @@ const BUNDLED_THEMES_DIR = path.resolve(__dirname, '../../themes')
 export type ThemeLoadInput =
   | { themeId: string }
   | { themePath: string }
+  | { themeContent: string }  // A1 (2026-05-22): CSS 文字列直接、メモリ上の持込テーマ用
 
 // ===== エラー型 =====
 
@@ -66,19 +67,30 @@ export class ThemeLoaderError extends Error {
 // ===== 公開 API =====
 
 /**
- * テーマ ID または絶対パスから ThemeData を生成する。
+ * テーマ ID / 絶対パス / CSS 文字列のいずれかから ThemeData を生成する。
  *
- * バンドル時テーマ: `packages/core/themes/<themeId>.css` を読込
- * 外部テーマ: 渡された絶対パスを直接読込
+ * バンドル時テーマ (themeId): `packages/core/themes/<themeId>.css` を読込
+ * 外部テーマ (themePath): 渡された絶対パスを直接読込
+ * 持込テーマ (themeContent, A1 で追加): CSS 文字列を直接そのまま使用、ファイル I/O 無し
  *
  * メタデータ抽出 + バリデーションに失敗した場合は ThemeLoaderError を throw。
  * バリデーション側の ThemeDataValidationError は `kind: 'validation-failed'` の cause として包む。
  */
 export async function loadTheme(input: ThemeLoadInput): Promise<ThemeData> {
-  const resolvedPath = resolveThemePath(input)
+  let cssContent: string
+  let sourceLabel: string  // エラーメッセージ用、path or "<in-memory>"
 
-  const cssContent = await readCss(resolvedPath)
-  const themeData = parseThemeData(cssContent, resolvedPath)
+  if ('themeContent' in input) {
+    // A1: 持込テーマ、ファイル I/O スキップ
+    cssContent = input.themeContent
+    sourceLabel = '<in-memory>'
+  } else {
+    const resolvedPath = resolveThemePath(input)
+    cssContent = await readCss(resolvedPath)
+    sourceLabel = resolvedPath
+  }
+
+  const themeData = parseThemeData(cssContent, sourceLabel)
 
   try {
     assertValidThemeData(themeData)
@@ -86,7 +98,7 @@ export async function loadTheme(input: ThemeLoadInput): Promise<ThemeData> {
     if (e instanceof ThemeDataValidationError) {
       throw new ThemeLoaderError({
         kind: 'validation-failed',
-        path: resolvedPath,
+        path: sourceLabel,
         cause: e,
         message: `Validation failed: ${e.message}`,
       })
@@ -99,7 +111,7 @@ export async function loadTheme(input: ThemeLoadInput): Promise<ThemeData> {
 
 // ===== 内部関数 =====
 
-function resolveThemePath(input: ThemeLoadInput): string {
+function resolveThemePath(input: { themeId: string } | { themePath: string }): string {
   if ('themeId' in input) {
     return path.join(BUNDLED_THEMES_DIR, `${input.themeId}.css`)
   }

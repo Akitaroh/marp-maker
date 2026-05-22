@@ -201,3 +201,104 @@ sequenceDiagram
 
 [^1]: 脚注 1 の内容
 [^2]: 脚注 2 の内容
+
+---
+
+<!-- _color: '#cc0000' -->
+
+# Page 14 — `_color` Directive
+
+このページはテキスト色を **赤** に。`_color: '#cc0000'` で指定。
+
+本文も色付け対象になるはず。
+
+---
+
+<!-- _paginate: false -->
+
+# Page 15 — `_paginate: false`
+
+このページだけページ番号を消す。前後のページは番号が付くはず。
+
+A2 / 検証点: 個別ページの paginate 制御が効くか。
+
+---
+
+# Page 16 — 画像 filter（Marp 拡張）
+
+通常画像:
+
+![Marp logo](https://marp.app/og-image.jpg)
+
+グレースケール:
+
+![grayscale](https://marp.app/og-image.jpg)
+
+ブラー:
+
+![blur:5px](https://marp.app/og-image.jpg)
+
+セピア:
+
+![sepia](https://marp.app/og-image.jpg)
+
+回転 + 拡大:
+
+![rotate:45deg w:200](https://marp.app/og-image.jpg)
+
+---
+
+![bg right](https://marp.app/og-image.jpg)
+
+# Page 17 — `![bg right]` 右側分割背景
+
+`![bg right]` で右半分に背景画像、左にコンテンツの 2 列レイアウト。
+
+- 項目 A
+- 項目 B
+- 項目 C
+
+これは Marp 拡張の split background。
+
+---
+
+![bg left:33%](https://marp.app/og-image.jpg)
+
+# Page 18 — `![bg left:33%]` 左側 33% 分割
+
+左 33% に背景、右 67% に本文。比率指定。
+
+A2 / 検証点: 比率指定が効くか。
+
+---
+
+![bg vertical](https://marp.app/og-image.jpg)
+![bg](https://marp.app/og-image.jpg)
+
+# Page 19 — `![bg vertical]` 縦並び背景
+
+複数の background image を縦に並べる。Marp 拡張。
+
+---
+
+# Page 20 — Speaker notes
+
+これは通常本文。
+
+<!-- このコメントは speaker notes として認識されるはず。
+PDF 出力時に annotation として埋め込まれる（--pdf-notes フラグで）。
+HTML 出力時には bespoke template で presenter view から見える。 -->
+
+speaker note 検証点:
+- HTML 出力で speaker note が data 属性等で残るか
+- PDF 出力（`--pdf-notes` 無し）では含まれないはず
+
+---
+
+<!-- _backgroundImage: 'linear-gradient(to right, #ff0000, #0000ff)' -->
+
+# Page 21 — `_backgroundImage` Directive
+
+このページは gradient 背景。`_backgroundImage` で CSS background-image 風に指定。
+
+A2 / 検証点: directive 経由の背景画像が効くか。

@@ -1,6 +1,6 @@
 /**
  * MarpMaker web app root.
- * 4 Atom (Editor / GenerateDialog / Preview / Export) を統合。
+ * 5 Atom (Editor / GenerateDialog / Preview / Export / ThemeSwitcher) を統合。
  *
  * 設計 doc: 50_Mission/zddmission/MarpMaker/ Atom-* 各種
  *
@@ -16,14 +16,25 @@ import { Editor } from '../editor/Editor'
 import { GenerateDialog, type GenerateInput } from '../editor/GenerateDialog'
 import { Preview, type RenderFn } from '../preview/Preview'
 import { Export, type ExportResult, type ExportStatus } from '../export/Export'
+import {
+  ThemeSwitcher,
+  type BundledThemeOption,
+  type ThemeSelection,
+} from '../theme/ThemeSwitcher'
 
 import styles from './App.module.css'
 
 // ===== 定数 =====
 
-const THEME_ID = 'whitepaper-a4'
-/** Preview に渡す themePath。実際の解決は API endpoint 側、ここは props 形式のため。 */
-const THEME_PATH_PLACEHOLDER = `__bundled__/${THEME_ID}`
+const DEFAULT_THEME_ID = 'whitepaper-a4'
+
+/** バンドルテーマ一覧（A3 で複数化、現状は 1 個）。 */
+const AVAILABLE_THEMES: BundledThemeOption[] = [
+  { themeId: 'whitepaper-a4', label: 'Whitepaper A4' },
+]
+
+/** Preview に渡す themePath は placeholder、実 resolve は middleware 側。 */
+const THEME_PATH_PLACEHOLDER = '__theme__'
 
 const DEFAULT_MARKDOWN = `---
 marp: true
@@ -59,6 +70,10 @@ ZDD (Zettel駆動開発) で実装中の MVP。
 
 export function App(): JSX.Element {
   const [markdown, setMarkdown] = useState(DEFAULT_MARKDOWN)
+  const [currentTheme, setCurrentTheme] = useState<ThemeSelection>({
+    kind: 'bundled',
+    themeId: DEFAULT_THEME_ID,
+  })
   const [generateDialogOpen, setGenerateDialogOpen] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [isValidating, setIsValidating] = useState(false)
@@ -73,7 +88,7 @@ export function App(): JSX.Element {
       const response = await fetch('/api/render', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ markdown: md, themeId: THEME_ID }),
+        body: JSON.stringify({ markdown: md, theme: currentTheme }),
         signal,
       })
       if (!response.ok) {
@@ -85,7 +100,7 @@ export function App(): JSX.Element {
       const data = (await response.json()) as { htmlString: string }
       return data.htmlString
     },
-    []
+    [currentTheme]
   )
 
   // ===== Generate handler =====
@@ -138,7 +153,7 @@ export function App(): JSX.Element {
       const response = await fetch('/api/export', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ markdown, themeId: THEME_ID }),
+        body: JSON.stringify({ markdown, theme: currentTheme }),
       })
       if (!response.ok) {
         const err = (await response.json().catch(() => ({}))) as {
@@ -169,6 +184,13 @@ export function App(): JSX.Element {
     <div className={styles.app}>
       <header className={styles.header}>
         <h1 className={styles.title}>MarpMaker</h1>
+        <div className={styles.themeArea}>
+          <ThemeSwitcher
+            currentTheme={currentTheme}
+            availableThemes={AVAILABLE_THEMES}
+            onChange={setCurrentTheme}
+          />
+        </div>
         <div className={styles.exportArea}>
           <Export
             onExport={handleExport}
@@ -204,7 +226,11 @@ export function App(): JSX.Element {
         onClose={() => setGenerateDialogOpen(false)}
         onSubmit={(input) => void handleGenerate(input)}
         isSubmitting={isGenerating}
-        defaultThemeId={THEME_ID}
+        defaultThemeId={
+          currentTheme.kind === 'bundled'
+            ? currentTheme.themeId
+            : DEFAULT_THEME_ID
+        }
       />
     </div>
   )

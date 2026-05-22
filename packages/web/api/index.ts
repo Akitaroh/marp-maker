@@ -19,7 +19,18 @@ import {
   renderMarp,
   loadTheme,
   type GenerateInput,
+  type ThemeLoadInput,
 } from '@akitaroh/marp-core'
+
+// ===== types =====
+
+/**
+ * テーマ選択 (A1, 2026-05-22): バンドル / カスタム CSS 持込の 2 経路。
+ * Web UI の Atom-ThemeSwitcher が選択結果を本型で API に送る。
+ */
+type ThemeSelection =
+  | { kind: 'bundled'; themeId: string }
+  | { kind: 'custom'; cssContent: string }
 
 // ===== utils =====
 
@@ -33,14 +44,37 @@ async function readJsonBody(req: Connect.IncomingMessage): Promise<unknown> {
   return JSON.parse(buffer.toString('utf-8'))
 }
 
-async function resolveThemePath(themeId: string): Promise<string> {
-  const theme = await loadTheme({ themeId })
+/**
+ * Theme を解決して tmp ファイル化、marp-cli に渡す絶対パスを返す。
+ * - bundled: loadTheme({ themeId }) → tmp 書込
+ * - custom:  loadTheme({ themeContent }) → tmp 書込（validate 含む）
+ */
+async function resolveThemePath(theme: ThemeSelection): Promise<string> {
+  const input: ThemeLoadInput =
+    theme.kind === 'bundled'
+      ? { themeId: theme.themeId }
+      : { themeContent: theme.cssContent }
+  const themeData = await loadTheme(input)
+  const idForFilename = theme.kind === 'bundled' ? theme.themeId : 'custom'
   const tmpPath = path.join(
     os.tmpdir(),
-    `marp-maker-theme-${themeId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.css`
+    `marp-maker-theme-${idForFilename}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.css`
   )
-  await fs.writeFile(tmpPath, theme.cssContent)
+  await fs.writeFile(tmpPath, themeData.cssContent)
   return tmpPath
+}
+
+/**
+ * 互換性 shim: 旧 body 形式 { themeId } と新形式 { theme: ThemeSelection } の両方を吸収。
+ * 既存クライアントを壊さないため、themeId のみが渡された場合は bundled として扱う。
+ */
+function parseThemeFromBody(body: {
+  theme?: ThemeSelection
+  themeId?: string
+}): ThemeSelection {
+  if (body.theme) return body.theme
+  if (body.themeId) return { kind: 'bundled', themeId: body.themeId }
+  throw new Error('Request body must include "theme" or "themeId"')
 }
 
 function sendJson(
@@ -99,9 +133,10 @@ export function apiPlugin(): Plugin {
         try {
           const body = (await readJsonBody(req)) as {
             markdown: string
-            themeId: string
+            theme?: ThemeSelection
+            themeId?: string  // legacy
           }
-          themePath = await resolveThemePath(body.themeId)
+          themePath = await resolveThemePath(parseThemeFromBody(body))
           const result = await renderMarp({
             markdown: body.markdown,
             themePath,
@@ -128,9 +163,10 @@ export function apiPlugin(): Plugin {
         try {
           const body = (await readJsonBody(req)) as {
             markdown: string
-            themeId: string
+            theme?: ThemeSelection
+            themeId?: string  // legacy
           }
-          themePath = await resolveThemePath(body.themeId)
+          themePath = await resolveThemePath(parseThemeFromBody(body))
           const result = await renderMarp({
             markdown: body.markdown,
             themePath,

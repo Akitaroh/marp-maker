@@ -207,3 +207,53 @@ export default {
 残り未対応:
 - Mermaid のみ（フローチャート / シーケンス図、Marp で実用品質出すのは工数大、後回し）
 
+---
+
+## A2 検証結果（2026-05-22）
+
+passthrough fixture を `all-features.md` (21 ページ) + `global-directives.md` (2 ページ) に拡張。未確認だった Marp 機能を検証。
+
+### 結果: **全項目 ✅ 動作確認**
+
+| 項目 | 内容 | 結果 |
+|---|---|---|
+| **A2.1** | `_color: '#cc0000'` directive | ✅ `color:#cc0000` 適用 |
+| **A2.2** | `_paginate: false` per-page | ✅ 該当ページのみ `data-marpit-pagination` 属性無し |
+| **A2.3** | 画像 filter（`grayscale` / `blur:5px` / `sepia` / `rotate:45deg`）| ✅ `style="filter:..."` 適用 |
+| **A2.4** | `![bg right]` split background | ✅ `data-marpit-advanced-background-split` |
+| **A2.5** | `![bg left:33%]` 比率指定 | ✅ `33%` 出力に反映 |
+| **A2.6** | `![bg vertical]` 縦並び背景 | ✅ `data-marpit-advanced-background-direction` |
+| **A2.7** | Speaker notes（HTML コメント）| ✅ `<div class="bespoke-marp-note" data-index="20">` で保持、`--pdf-notes` フラグで PDF annotation 化可能 |
+| **A2.8** | `_backgroundImage: 'linear-gradient(...)'` | ✅ `background-image:linear-gradient(...)` 適用 |
+| **Global header** | frontmatter `header:` | ✅ 全ページに `<header>` 追加（markdown 記法 OK）|
+| **Global footer** | frontmatter `footer:` | ✅ 全ページに `<footer>` 追加 |
+| **Global style** | frontmatter `style: \|` | ✅ インライン CSS 注入、`h1 { color: #cc6600 }` 等 |
+
+### 重要な発見
+
+**A3.1 + A3.2 適用後、Marp のレンダリング側機能は 100% カバーされている状態**:
+
+- すべての Marp Directives（page-level + global）が通る
+- すべての画像拡張（filter / split bg / vertical / 比率指定）が通る
+- Speaker notes が `--pdf-notes` 経由で PDF 化可能
+- HTML 埋込 / Math / Task list / Footnote / Code highlight / Table / Image / Blockquote 全部 OK
+
+**Mermaid のみ標準非対応**（Phase B-C で MermaidMaker 統合で対応）。
+
+### Marp 機能完備度の真の意味
+
+「Marp の機能が通るか」という観点では **100%**。
+「MarpMaker プロダクトから UI で操作できるか」という観点では **62%**（13 機能カテゴリのうち、UI 露出済 8）。
+
+残り gap（Phase A の A1, A3, A4, A5, A6 で順次解消）:
+- カスタム CSS 持込 + テーマ切替 UI（A1 + A3）
+- サイズプリセット切替 UI（A4）
+- PNG / PPTX / PDF outlines / PDF notes の UI 露出（A5）
+- Frontmatter UI（A6）
+- 画像アップロード（A7、Phase A 外）
+
+### Step 1 達成度（更新）
+
+**Marp 機能完備度: 100%**（A2 で確認、Mermaid は意図的に Phase B-C 委譲）
+**UI 経由の制御カバー: 62%**（A1〜A6 で解消予定）
+
