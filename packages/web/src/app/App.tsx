@@ -1,6 +1,6 @@
 /**
  * MarpMaker web app root.
- * 5 Atom (Editor / GenerateDialog / Preview / Export / ThemeSwitcher) を統合。
+ * 6 Atom (Editor / GenerateDialog / Preview / Export / ThemeSwitcher / FrontmatterPanel) を統合。
  *
  * 設計 doc: 50_Mission/zddmission/MarpMaker/ Atom-* 各種
  *
@@ -10,7 +10,7 @@
  * - /api/export   (PDF binary)
  */
 
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 import { Editor } from '../editor/Editor'
 import { GenerateDialog, type GenerateInput } from '../editor/GenerateDialog'
@@ -26,6 +26,12 @@ import {
   type BundledThemeOption,
   type ThemeSelection,
 } from '../theme/ThemeSwitcher'
+import { FrontmatterPanel } from '../frontmatter/FrontmatterPanel'
+import {
+  extractFrontmatterValues,
+  applyFrontmatterValues,
+  type FrontmatterValues,
+} from '../frontmatter/frontmatter-codec'
 
 import styles from './App.module.css'
 
@@ -82,11 +88,26 @@ export function App(): JSX.Element {
     themeId: DEFAULT_THEME_ID,
   })
   const [generateDialogOpen, setGenerateDialogOpen] = useState(false)
+  const [frontmatterPanelOpen, setFrontmatterPanelOpen] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [isValidating, setIsValidating] = useState(false)
   const [exportStatus, setExportStatus] = useState<ExportStatus>('idle')
   const [exportResult, setExportResult] = useState<ExportResult | undefined>(undefined)
   const [exportError, setExportError] = useState<string | undefined>(undefined)
+
+  // ===== A6: 現在の markdown から frontmatter values を抽出（panel に渡す） =====
+
+  const frontmatterValues = useMemo<FrontmatterValues>(
+    () => extractFrontmatterValues(markdown),
+    [markdown]
+  )
+
+  const handleFrontmatterApply = useCallback(
+    (next: FrontmatterValues): void => {
+      setMarkdown((current) => applyFrontmatterValues(current, next))
+    },
+    []
+  )
 
   // ===== Preview render (called by Atom-Preview internally) =====
 
@@ -208,6 +229,15 @@ export function App(): JSX.Element {
             availableThemes={AVAILABLE_THEMES}
             onChange={setCurrentTheme}
           />
+          <button
+            type="button"
+            onClick={() => setFrontmatterPanelOpen(true)}
+            className={styles.settingsButton}
+            aria-label="Frontmatter 設定を開く"
+            data-testid="open-frontmatter-panel"
+          >
+            ⚙ Frontmatter
+          </button>
         </div>
         <div className={styles.exportArea}>
           <Export
@@ -249,6 +279,13 @@ export function App(): JSX.Element {
             ? currentTheme.themeId
             : DEFAULT_THEME_ID
         }
+      />
+
+      <FrontmatterPanel
+        open={frontmatterPanelOpen}
+        values={frontmatterValues}
+        onApply={handleFrontmatterApply}
+        onClose={() => setFrontmatterPanelOpen(false)}
       />
     </div>
   )
