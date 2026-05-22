@@ -2,6 +2,17 @@
 
 LLM 協働でブランド完全準拠した A4 ホワイトペーパーを量産するツール。Marp を基盤に web / Obsidian plugin / MCP server の 3 形態で展開。
 
+## Status
+
+> ⚠️ **Private repo during M-web development.** Will be made public once M-web milestone is complete (MVP).
+
+| Milestone | Status |
+|---|---|
+| **M-core** (marp-engine) | ✅ Complete — 6 Atoms (theme + marp + ai + validate), 62 unit + 5 integration tests |
+| **M-web** (Vercel deploy) | ⬜ In progress — next, MVP target |
+| **M-plugin** (Obsidian Community Plugin) | ⬜ Planned |
+| **M-mcp** (MCP server) | ⬜ Planned |
+
 ## 設計
 
 このリポジトリの設計は ZDD (Zettel駆動開発) で管理されている。
