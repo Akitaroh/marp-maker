@@ -1,0 +1,169 @@
+/* @theme slide-16-9 */
+/* @size 16-9 1280px 720px */
+@import 'default';
+
+section {
+  width: 1280px;
+  height: 720px;
+  padding: 60px 80px;
+  background: #ffffff;
+  color: #1a1a1a;
+  font-family: 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+  font-size: 24pt;
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+section h1 {
+  color: #0066cc;
+  font-size: 48pt;
+  font-weight: 700;
+  margin-bottom: 32px;
+  line-height: 1.2;
+}
+
+section h2 {
+  color: #1a1a1a;
+  font-size: 36pt;
+  font-weight: 700;
+  border-bottom: 3px solid #0066cc;
+  padding-bottom: 12px;
+  margin-top: 24px;
+  margin-bottom: 24px;
+}
+
+section h3 {
+  font-size: 28pt;
+  font-weight: 700;
+  margin-top: 20px;
+  margin-bottom: 16px;
+  color: #333;
+}
+
+section p {
+  margin-bottom: 16px;
+}
+
+section ul,
+section ol {
+  margin-bottom: 20px;
+  padding-left: 32px;
+}
+
+section li {
+  margin-bottom: 10px;
+}
+
+section blockquote {
+  border-left: 6px solid #0066cc;
+  padding-left: 24px;
+  margin: 24px 0;
+  color: #555;
+  font-style: italic;
+  font-size: 22pt;
+}
+
+section code {
+  background: #f5f5f5;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-family: 'SF Mono', Consolas, monospace;
+  font-size: 20pt;
+}
+
+section pre {
+  background: #f5f5f5;
+  padding: 24px;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 18pt;
+}
+
+section table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 24px 0;
+  font-size: 20pt;
+}
+
+section table th,
+section table td {
+  border: 1px solid #ddd;
+  padding: 12px 16px;
+  text-align: left;
+}
+
+section table th {
+  background: #f0f7ff;
+  font-weight: 700;
+}
+
+section footer {
+  position: absolute;
+  bottom: 30px;
+  left: 80px;
+  right: 80px;
+  font-size: 14pt;
+  color: #999;
+}
+
+section header {
+  position: absolute;
+  top: 30px;
+  left: 80px;
+  right: 80px;
+  font-size: 14pt;
+  color: #999;
+}
+
+section::after {
+  /* paginate: ページ番号 */
+  position: absolute;
+  bottom: 30px;
+  right: 80px;
+  color: #999;
+  font-size: 14pt;
+}
+
+/* タイトルスライド用クラス（<!-- _class: lead --> 用） */
+section.lead {
+  text-align: center;
+  align-items: center;
+  background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
+}
+
+section.lead h1 {
+  font-size: 60pt;
+  border: none;
+  margin-bottom: 24px;
+}
+
+section.lead h2 {
+  font-size: 32pt;
+  border: none;
+  color: #666;
+  font-weight: 400;
+}
+
+/* invert モード（<!-- _class: invert --> 用） */
+section.invert {
+  background: #1a1a1a;
+  color: #eee;
+}
+
+section.invert h1 {
+  color: #5eb3ff;
+}
+
+section.invert h2 {
+  color: #eee;
+  border-bottom-color: #5eb3ff;
+}
+
+section.invert code,
+section.invert pre {
+  background: #2a2a2a;
+  color: #eee;
+}

@@ -28,9 +28,11 @@ import styles from './App.module.css'
 
 const DEFAULT_THEME_ID = 'whitepaper-a4'
 
-/** バンドルテーマ一覧（A3 で複数化、現状は 1 個）。 */
+/** バンドルテーマ一覧（A3 で複数化、2026-05-22）。 */
 const AVAILABLE_THEMES: BundledThemeOption[] = [
   { themeId: 'whitepaper-a4', label: 'Whitepaper A4' },
+  { themeId: 'slide-16-9', label: 'Slide 16:9' },
+  { themeId: 'minimal-mono', label: 'Minimal Mono (A4)' },
 ]
 
 /** Preview に渡す themePath は placeholder、実 resolve は middleware 側。 */

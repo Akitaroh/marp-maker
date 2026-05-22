@@ -42,6 +42,20 @@ describe('loadTheme - themeId (bundled)', () => {
     expect(theme.cssContent).toContain('@size A4 793px 1122px')
   })
 
+  it('loads the bundled slide-16-9 theme (A3)', async () => {
+    const theme = await loadTheme({ themeId: 'slide-16-9' })
+    expect(theme.id).toBe('slide-16-9')
+    expect(theme.size).toEqual({ name: '16-9', width: 1280, height: 720 })
+    expect(theme.cssContent).toContain('@theme slide-16-9')
+  })
+
+  it('loads the bundled minimal-mono theme (A3)', async () => {
+    const theme = await loadTheme({ themeId: 'minimal-mono' })
+    expect(theme.id).toBe('minimal-mono')
+    expect(theme.size).toEqual({ name: 'A4', width: 793, height: 1122 })
+    expect(theme.cssContent).toContain('@theme minimal-mono')
+  })
+
   it('throws file-not-found for unknown themeId', async () => {
     try {
       await loadTheme({ themeId: 'no-such-theme-xyz' })
