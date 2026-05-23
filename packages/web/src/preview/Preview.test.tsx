@@ -158,48 +158,45 @@ describe('Preview - error state', () => {
   })
 })
 
-describe('Preview - zoom (presentation mode only)', () => {
-  // dogfood-fix 1: zoom は presentation mode の iframeWrap にのみ適用
-  // document mode では iframeWrap の transform は使用しない（縦スクロール）
-  it('applies zoom via CSS transform in presentation mode', () => {
-    const render = makeRenderFn()
+describe('Preview - slide scale (dogfood-fix 1 続編 4)', () => {
+  // dogfood-fix 1 続編 4: slide mode で iframe に transform: translate(-50%,-50%) scale(N)
+  // wrap は overflow:hidden + position:relative、iframe が absolute center 配置
+  // document mode では transform 無し（縦スクロール）
+  it('iframe has translate + scale transform in slide mode', async () => {
+    const render = makeRenderFn('<html><body></body></html>')
     rtlRender(
       <Preview
-        markdown=""
+        markdown="# X"
         themePath="/theme.css"
         render={render}
         mode="presentation"
-        zoom={1.5}
       />
     )
 
-    const container = screen.getByTestId('preview-container')
-    // iframeWrap は toolbar の次の div
-    const allDivs = container.querySelectorAll('div')
-    const wrap = Array.from(allDivs).find(
-      (d) => d.style.transform && d.style.transform.includes('scale')
-    )
-    expect(wrap?.style.transform).toContain('scale(1.5)')
+    const iframe = await screen.findByTitle('Marp プレビュー', undefined, {
+      timeout: RENDER_WAIT,
+    })
+    const styleAttr = iframe.getAttribute('style') ?? ''
+    expect(styleAttr).toContain('translate(-50%, -50%)')
+    expect(styleAttr).toContain('scale(')
   })
 
-  it('does not apply transform in document mode', () => {
-    const render = makeRenderFn()
+  it('iframe has no translate transform in document mode', async () => {
+    const render = makeRenderFn('<html><body></body></html>')
     rtlRender(
       <Preview
-        markdown=""
+        markdown="# X"
         themePath="/theme.css"
         render={render}
         mode="document"
-        zoom={1.5}
       />
     )
 
-    const container = screen.getByTestId('preview-container')
-    const allDivs = container.querySelectorAll('div')
-    const wrap = Array.from(allDivs).find(
-      (d) => d.style.transform && d.style.transform.includes('scale')
-    )
-    expect(wrap).toBeUndefined()
+    const iframe = await screen.findByTitle('Marp プレビュー', undefined, {
+      timeout: RENDER_WAIT,
+    })
+    const styleAttr = iframe.getAttribute('style') ?? ''
+    expect(styleAttr).not.toContain('translate(-50%')
   })
 })
 

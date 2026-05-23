@@ -14,7 +14,7 @@
  * - 'presentation': bespoke template でページめくり（既存挙動、プレゼン UX）
  */
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import styles from './Preview.module.css'
 
 // ===== Types =====
@@ -84,6 +84,44 @@ export function Preview(props: PreviewProps): JSX.Element {
   // dogfood-fix 1 続編: iframe ref + auto-height for document mode
   const iframeRef = useRef<HTMLIFrameElement | null>(null)
 
+  // dogfood-fix 1 続編 4: slide mode の scale-to-fit
+  const slideStageRef = useRef<HTMLDivElement | null>(null)
+  const [slideScale, setSlideScale] = useState<number>(1)
+
+  /**
+   * slide mode で iframe を pane に fit させる scale を計算
+   * - iframe は theme CSS の native size (793×1122 / 1280×720 etc.) を維持
+   * - 親 stage 内で aspect 比保ったまま、両軸の min で scale を決定
+   * - 余白 32px (padding 16 × 2) を引いて余裕を持たせる
+   */
+  const computeSlideScale = useCallback((): void => {
+    if (mode !== 'presentation') return
+    const stage = slideStageRef.current
+    const iframe = iframeRef.current
+    if (!stage || !iframe) return
+    const PADDING = 32
+    const stageW = stage.clientWidth - PADDING
+    const stageH = stage.clientHeight - PADDING
+    const iframeW = iframe.offsetWidth
+    const iframeH = iframe.offsetHeight
+    if (!iframeW || !iframeH || !stageW || !stageH) return
+    // zoom prop で外部 override 可能（default 1.0、auto-fit を上限とする）
+    const autoFit = Math.min(stageW / iframeW, stageH / iframeH, 1)
+    const finalScale = autoFit * (zoom ?? 1.0)
+    setSlideScale(finalScale)
+  }, [mode, zoom])
+
+  // ResizeObserver で stage サイズ変更を監視、scale 再計算
+  useLayoutEffect(() => {
+    if (mode !== 'presentation') return
+    computeSlideScale()
+    const stage = slideStageRef.current
+    if (!stage) return
+    const ro = new ResizeObserver(() => computeSlideScale())
+    ro.observe(stage)
+    return (): void => ro.disconnect()
+  }, [mode, htmlString, computeSlideScale])
+
   /**
    * document mode で srcdoc に注入する style:
    * - body bg を明るくしてダーク背景を消す
@@ -136,13 +174,29 @@ export function Preview(props: PreviewProps): JSX.Element {
     if (!iframe?.contentDocument) return
 
     if (mode === 'presentation') {
-      // dogfood-fix 1 続編 2: document mode で設定した style.height を解除
-      // これがないと slide mode 切替時も 2912px のまま縦長になる
-      iframe.style.height = ''
+      // dogfood-fix 1 続編 4: slide native size を SVG viewBox から取得して iframe に反映
+      // bespoke template の SVG[data-marpit-svg] に viewBox="0 0 W H" が入っている
+      // これで A4 (793×1122) も 16:9 (1280×720) も自動対応
+      const svg = iframe.contentDocument.querySelector('svg[data-marpit-svg]')
+      const viewBox = svg?.getAttribute('viewBox')
+      if (viewBox) {
+        const parts = viewBox.split(/\s+/).map(Number)
+        if (parts.length === 4 && Number.isFinite(parts[2]) && Number.isFinite(parts[3])) {
+          const w = parts[2]!
+          const h = parts[3]!
+          iframe.style.width = `${w}px`
+          iframe.style.height = `${h}px`
+        }
+      }
+      // scale 計算は useLayoutEffect の ResizeObserver で trigger される
+      computeSlideScale()
       return
     }
 
     // mode === 'document':
+
+    // 念のため document mode で width をリセット (slide mode から戻った時)
+    iframe.style.width = ''
 
     // (1) auto-fit height
     const contentHeight = iframe.contentDocument.body.scrollHeight
@@ -255,15 +309,11 @@ export function Preview(props: PreviewProps): JSX.Element {
       </div>
 
       <div
+        ref={mode === 'presentation' ? slideStageRef : undefined}
         className={
           mode === 'document'
             ? `${styles.iframeWrap} ${styles.iframeWrapDocument}`
-            : styles.iframeWrap
-        }
-        style={
-          mode === 'presentation'
-            ? { transform: `scale(${zoom})`, transformOrigin: 'top center' }
-            : undefined
+            : `${styles.iframeWrap} ${styles.iframeWrapSlide}`
         }
       >
         {effectiveSrcDoc != null && (
@@ -285,10 +335,21 @@ export function Preview(props: PreviewProps): JSX.Element {
                 : 'allow-same-origin allow-scripts'
             }
             onLoad={handleIframeLoad}
+            /*
+             * dogfood-fix 1 続編 4: slide mode の transform scale を inline style で指定
+             * （CSS で `--slide-scale` 変数経由でも可だが、React の reactivity と相性が良い）
+             */
+            style={
+              mode === 'presentation'
+                ? {
+                    transform: `translate(-50%, -50%) scale(${slideScale})`,
+                  }
+                : undefined
+            }
             className={
               mode === 'document'
                 ? `${styles.iframe} ${styles.iframeDocument}`
-                : styles.iframe
+                : `${styles.iframe} ${styles.iframeSlide}`
             }
           />
         )}

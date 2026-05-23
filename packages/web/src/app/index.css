@@ -1,0 +1,28 @@
+/*
+ * MarpMaker web app グローバル reset (dogfood-fix 1 続編 4, 2026-05-23)
+ *
+ * 業界標準 SPA layout: viewport 固定 (no page scroll), 内部 pane が独立 scroll
+ * - html, body: 余白 0、100% height、page scroll 禁止
+ * - #root: 100% height
+ *
+ * 設計: 50_Mission/zddmission/MarpMaker/Atom-Preview.md「グローバル layout 制約」
+ */
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
+}
+
+/* box-sizing border-box を全要素に適用（業界デファクト） */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
