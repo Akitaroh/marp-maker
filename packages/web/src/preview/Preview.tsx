@@ -120,17 +120,33 @@ export function Preview(props: PreviewProps): JSX.Element {
       : htmlString
 
   /**
-   * iframe load 時、document mode では body.scrollHeight に合わせて iframe height を auto-fit
-   * これで 親 wrap (overflow:auto) で全 page を縦スクロール可能になる
+   * iframe load 時、document mode では以下を実行:
+   * 1. body.scrollHeight に合わせて iframe height を auto-fit
+   * 2. iframe 内の wheel event を親 wrap に forward
+   *    (iframe は wheel event を吸収するため、明示的に親側 scroll をトリガする)
    */
   const handleIframeLoad = (): void => {
     if (mode !== 'document') return
     const iframe = iframeRef.current
     if (!iframe?.contentDocument) return
+
+    // (1) auto-fit height
     const contentHeight = iframe.contentDocument.body.scrollHeight
     if (contentHeight > 0) {
       iframe.style.height = `${contentHeight + 20}px`
     }
+
+    // (2) wheel event forwarding (iframe → 親 wrap)
+    const wrap = iframe.parentElement
+    if (!wrap) return
+    const iframeDoc = iframe.contentDocument
+    const handleWheel = (e: WheelEvent): void => {
+      // 親 wrap を scroll、iframe 内部スクロールは抑止
+      e.preventDefault()
+      wrap.scrollBy({ top: e.deltaY, left: e.deltaX, behavior: 'auto' })
+    }
+    iframeDoc.addEventListener('wheel', handleWheel, { passive: false })
+    // cleanup は次回 onLoad で別 doc になるので不要（古い iframeDoc は GC される）
   }
 
   useEffect(() => {
