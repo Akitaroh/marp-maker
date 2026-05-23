@@ -1,0 +1,43 @@
+{
+  "name": "@akitaroh/marp-mcp",
+  "version": "0.0.0",
+  "description": "MCP server for MarpMaker - call Marp generation / rendering / visual validation from any MCP client (Claude Code / Desktop)",
+  "license": "MIT",
+  "author": "akitaroh",
+  "type": "module",
+  "bin": {
+    "marp-mcp": "./dist/bin.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "start": "tsx src/bin.ts",
+    "dev": "tsx watch src/bin.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@akitaroh/marp-core": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
