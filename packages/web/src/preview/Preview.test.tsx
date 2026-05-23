@@ -78,6 +78,7 @@ describe('Preview - rendering / ready', () => {
     )
 
     const iframe = screen.getByTitle('Marp プレビュー')
+    // default mode = document → sandbox: allow-same-origin (no scripts)
     expect(iframe).toHaveAttribute('sandbox', 'allow-same-origin')
     expect(iframe).toHaveAttribute('srcDoc', '<html>HELLO</html>')
 
@@ -310,10 +311,17 @@ describe('Preview - mode toggle (dogfood-fix 1)', () => {
   })
 })
 
-describe('Preview - sandbox security', () => {
-  it('iframe sandbox attribute is allow-same-origin only (no scripts)', async () => {
+describe('Preview - sandbox security (dogfood-fix 1 続編 3)', () => {
+  it('document mode: sandbox = allow-same-origin only (no scripts)', async () => {
     const render = makeRenderFn('<html></html>')
-    rtlRender(<Preview markdown="# X" themePath="/theme.css" render={render} />)
+    rtlRender(
+      <Preview
+        markdown="# X"
+        themePath="/theme.css"
+        render={render}
+        mode="document"
+      />
+    )
 
     const iframe = await screen.findByTitle(
       'Marp プレビュー',
@@ -321,7 +329,28 @@ describe('Preview - sandbox security', () => {
       { timeout: RENDER_WAIT }
     )
 
-    // script 実行は禁止 (allow-scripts なし)
+    // document mode: bare template に JS 無し、script 禁止
     expect(iframe.getAttribute('sandbox')).toBe('allow-same-origin')
+  })
+
+  it('presentation mode: sandbox = allow-same-origin allow-scripts (bespoke JS 必須)', async () => {
+    const render = makeRenderFn('<html></html>')
+    rtlRender(
+      <Preview
+        markdown="# X"
+        themePath="/theme.css"
+        render={render}
+        mode="presentation"
+      />
+    )
+
+    const iframe = await screen.findByTitle(
+      'Marp プレビュー',
+      undefined,
+      { timeout: RENDER_WAIT }
+    )
+
+    // presentation mode: bespoke の ←→ ナビ / OSC / active slide 制御に scripts 必須
+    expect(iframe.getAttribute('sandbox')).toBe('allow-same-origin allow-scripts')
   })
 })

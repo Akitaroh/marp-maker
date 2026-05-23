@@ -271,7 +271,19 @@ export function Preview(props: PreviewProps): JSX.Element {
             ref={iframeRef}
             title="Marp プレビュー"
             srcDoc={effectiveSrcDoc}
-            sandbox="allow-same-origin"
+            /*
+             * dogfood-fix 1 続編 3 (2026-05-23): sandbox を mode 別に動的設定
+             * - document: bare template、JS 不要、親から contentDocument 読込必要
+             *   → 'allow-same-origin' (scripts 禁止)
+             * - slide: bespoke template、JS 必須 (←→ ナビ / OSC / active slide 制御)
+             *   → 'allow-same-origin allow-scripts'
+             *   Marp 公式テンプレ由来の JS は信頼可、same-origin は height リセット用
+             */
+            sandbox={
+              mode === 'document'
+                ? 'allow-same-origin'
+                : 'allow-same-origin allow-scripts'
+            }
             onLoad={handleIframeLoad}
             className={
               mode === 'document'
