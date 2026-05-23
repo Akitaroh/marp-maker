@@ -81,6 +81,58 @@ export function Preview(props: PreviewProps): JSX.Element {
   const template: 'bespoke' | 'bare' =
     mode === 'presentation' ? 'bespoke' : 'bare'
 
+  // dogfood-fix 1 続編: iframe ref + auto-height for document mode
+  const iframeRef = useRef<HTMLIFrameElement | null>(null)
+
+  /**
+   * document mode で srcdoc に注入する style:
+   * - body bg を明るくしてダーク背景を消す
+   * - SVG section 間に margin
+   * - body overflow visible (親側 wrap で scroll)
+   */
+  const DOCUMENT_INJECT_STYLE = `
+    <style>
+      html, body {
+        background: #f5f5f5 !important;
+        margin: 0 !important;
+        padding: 16px !important;
+        overflow: visible !important;
+        height: auto !important;
+      }
+      svg[data-marpit-svg] {
+        display: block;
+        margin: 0 auto 16px;
+        max-width: 100%;
+        height: auto;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        background: white;
+      }
+    </style>
+  `
+
+  /**
+   * document mode は HTML の <head> 末尾に style を inject
+   * bespoke (presentation) では何もしない（既存挙動維持）
+   */
+  const effectiveSrcDoc =
+    htmlString != null && mode === 'document'
+      ? htmlString.replace('</head>', `${DOCUMENT_INJECT_STYLE}</head>`)
+      : htmlString
+
+  /**
+   * iframe load 時、document mode では body.scrollHeight に合わせて iframe height を auto-fit
+   * これで 親 wrap (overflow:auto) で全 page を縦スクロール可能になる
+   */
+  const handleIframeLoad = (): void => {
+    if (mode !== 'document') return
+    const iframe = iframeRef.current
+    if (!iframe?.contentDocument) return
+    const contentHeight = iframe.contentDocument.body.scrollHeight
+    if (contentHeight > 0) {
+      iframe.style.height = `${contentHeight + 20}px`
+    }
+  }
+
   useEffect(() => {
     // 前のレンダを cancel + debounce timer もクリア
     if (abortRef.current) {
@@ -184,11 +236,13 @@ export function Preview(props: PreviewProps): JSX.Element {
             : undefined
         }
       >
-        {htmlString != null && (
+        {effectiveSrcDoc != null && (
           <iframe
+            ref={iframeRef}
             title="Marp プレビュー"
-            srcDoc={htmlString}
+            srcDoc={effectiveSrcDoc}
             sandbox="allow-same-origin"
+            onLoad={handleIframeLoad}
             className={
               mode === 'document'
                 ? `${styles.iframe} ${styles.iframeDocument}`

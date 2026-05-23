@@ -60,12 +60,10 @@
 }
 
 .exportArea {
-  /* Export コンポーネント内の padding を打ち消して header 内に収める */
-  margin: -16px;
-}
-
-.exportArea > div {
-  padding: 8px !important;
+  /* dogfood-fix 2 続編: Export atom は自前で padding 4px 8px に最適化済み、
+     親側の打ち消しは不要 */
+  display: flex;
+  align-items: center;
 }
 
 .main {

@@ -1,17 +1,19 @@
 .container {
+  /* dogfood-fix 2 続編 (2026-05-23): ヘッダー内に収まるよう horizontal flex 化
+     controls (format select + pdf options + button) + success が横並び */
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
   gap: 12px;
-  padding: 16px;
-  /* dogfood-fix 2: ready 状態でレイアウト hijack されないよう min-width 固定 */
-  min-width: 480px;
+  padding: 4px 8px;
+  /* container 自体の高さはヘッダー内で自然に決まる */
 }
 
 .controls {
   display: flex;
   align-items: center;
   gap: 12px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;  /* ヘッダー内で wrap せず横並びキープ */
 }
 
 .label {
@@ -91,17 +93,17 @@
   color: #555;
 }
 
-/* dogfood-fix 2: 旧 downloadArea / downloadLink / sizeWarning は削除、successInline に置き換え */
+/* dogfood-fix 2 続編: container が row flex なので success は controls の右隣 inline */
 .successInline {
   display: inline-block;
-  font-size: 13px;
+  font-size: 12px;
   color: #2e7d32;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 280px;
-  padding: 6px 10px;
+  max-width: 200px;
+  padding: 4px 8px;
   background: #e8f5e9;
   border-radius: 4px;
   /* 3 秒後に自動 fade out のアニメーション */
