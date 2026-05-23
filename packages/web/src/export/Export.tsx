@@ -10,7 +10,7 @@
  * - pdfNotes: boolean
  */
 
-import { useState, type ChangeEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import styles from './Export.module.css'
 
 // ===== Types =====
@@ -79,9 +79,28 @@ export function Export(props: ExportProps): JSX.Element {
   const [pdfOutlines, setPdfOutlines] = useState<boolean>(true)
   const [pdfNotes, setPdfNotes] = useState<boolean>(false)
 
+  // dogfood-fix 2 (2026-05-23): 自動 DL trigger の冪等性のため、最後にトリガした result の identity (url) を記憶
+  const lastTriggeredUrlRef = useRef<string | null>(null)
+
   const isLoading = status === 'rendering'
   const isReady = status === 'ready' && result != null
   const isError = status === 'error'
+
+  // dogfood-fix 2: ready 状態になったら自動でダウンロード trigger
+  // ヘッダーレイアウト崩れを避けるため、リンク表示ではなく programmatic click
+  useEffect(() => {
+    if (!isReady || result == null) return
+    if (lastTriggeredUrlRef.current === result.url) return  // 多重実行回避
+    lastTriggeredUrlRef.current = result.url
+
+    const a = document.createElement('a')
+    a.href = result.url
+    a.download = result.filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    // Note: result.url (Blob URL) の revokeObjectURL は親 (App) の責務
+  }, [isReady, result])
 
   const handleFormatChange = (e: ChangeEvent<HTMLSelectElement>): void => {
     setSelectedFormat(e.target.value as ExportFormat)
@@ -165,21 +184,19 @@ export function Export(props: ExportProps): JSX.Element {
         </div>
       )}
 
+      {/* dogfood-fix 2: ready 状態の表示を inline success に変更
+          自動 DL は useEffect 経由、UI はステータス表示のみ */}
       {isReady && result != null && (
-        <div className={styles.downloadArea}>
-          <a
-            href={result.url}
-            download={result.filename}
-            aria-label={`生成された ${FORMAT_LABEL[result.format]} をダウンロード`}
-            className={styles.downloadLink}
-          >
-            {result.filename} をダウンロード
-          </a>
-          {result.sizeBytes > LARGE_FILE_THRESHOLD && (
-            <div className={styles.sizeWarning}>
-              ファイルサイズ: {(result.sizeBytes / 1_000_000).toFixed(1)} MB
-            </div>
-          )}
+        <div
+          role="status"
+          aria-live="polite"
+          aria-label={`生成された ${FORMAT_LABEL[result.format]} をダウンロードしました`}
+          className={styles.successInline}
+          data-testid="export-success"
+        >
+          ✓ ダウンロード済
+          {result.sizeBytes > LARGE_FILE_THRESHOLD &&
+            ` (${(result.sizeBytes / 1_000_000).toFixed(1)} MB)`}
         </div>
       )}
 

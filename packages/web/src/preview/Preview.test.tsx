@@ -69,10 +69,12 @@ describe('Preview - rendering / ready', () => {
       { timeout: RENDER_WAIT }
     )
 
+    // dogfood-fix 1: 第 4 引数 template が渡される（default mode='document' → 'bare'）
     expect(render).toHaveBeenCalledWith(
       '# Hello',
       '/theme.css',
-      expect.any(AbortSignal)
+      expect.any(AbortSignal),
+      'bare'
     )
 
     const iframe = screen.getByTitle('Marp プレビュー')
@@ -103,10 +105,12 @@ describe('Preview - rendering / ready', () => {
 
     // 最終的に呼ばれた回数は 1 回、最後の値 (ABC) のみ
     expect(render).toHaveBeenCalledTimes(1)
+    // dogfood-fix 1: template 引数を含む（default 'bare'）
     expect(render).toHaveBeenCalledWith(
       'ABC',
       '/theme.css',
-      expect.any(AbortSignal)
+      expect.any(AbortSignal),
+      'bare'
     )
   })
 })
@@ -153,30 +157,156 @@ describe('Preview - error state', () => {
   })
 })
 
-describe('Preview - zoom', () => {
-  it('applies zoom via CSS transform', () => {
+describe('Preview - zoom (presentation mode only)', () => {
+  // dogfood-fix 1: zoom は presentation mode の iframeWrap にのみ適用
+  // document mode では iframeWrap の transform は使用しない（縦スクロール）
+  it('applies zoom via CSS transform in presentation mode', () => {
     const render = makeRenderFn()
     rtlRender(
       <Preview
         markdown=""
         themePath="/theme.css"
         render={render}
+        mode="presentation"
         zoom={1.5}
       />
     )
 
     const container = screen.getByTestId('preview-container')
-    const wrap = container.querySelector('div')
+    // iframeWrap は toolbar の次の div
+    const allDivs = container.querySelectorAll('div')
+    const wrap = Array.from(allDivs).find(
+      (d) => d.style.transform && d.style.transform.includes('scale')
+    )
     expect(wrap?.style.transform).toContain('scale(1.5)')
   })
 
-  it('defaults zoom to 1.0', () => {
+  it('does not apply transform in document mode', () => {
+    const render = makeRenderFn()
+    rtlRender(
+      <Preview
+        markdown=""
+        themePath="/theme.css"
+        render={render}
+        mode="document"
+        zoom={1.5}
+      />
+    )
+
+    const container = screen.getByTestId('preview-container')
+    const allDivs = container.querySelectorAll('div')
+    const wrap = Array.from(allDivs).find(
+      (d) => d.style.transform && d.style.transform.includes('scale')
+    )
+    expect(wrap).toBeUndefined()
+  })
+})
+
+describe('Preview - mode toggle (dogfood-fix 1)', () => {
+  it('renders toolbar with mode radio buttons', () => {
     const render = makeRenderFn()
     rtlRender(<Preview markdown="" themePath="/theme.css" render={render} />)
 
-    const container = screen.getByTestId('preview-container')
-    const wrap = container.querySelector('div')
-    expect(wrap?.style.transform).toContain('scale(1)')
+    expect(screen.getByTestId('preview-mode-document')).toBeInTheDocument()
+    expect(screen.getByTestId('preview-mode-presentation')).toBeInTheDocument()
+  })
+
+  it('defaults mode to document', () => {
+    const render = makeRenderFn()
+    rtlRender(<Preview markdown="" themePath="/theme.css" render={render} />)
+
+    const docBtn = screen.getByTestId('preview-mode-document')
+    expect(docBtn).toHaveAttribute('aria-checked', 'true')
+  })
+
+  it('reflects mode prop value in radio button state', () => {
+    const render = makeRenderFn()
+    rtlRender(
+      <Preview
+        markdown=""
+        themePath="/theme.css"
+        render={render}
+        mode="presentation"
+      />
+    )
+
+    expect(screen.getByTestId('preview-mode-presentation')).toHaveAttribute(
+      'aria-checked',
+      'true'
+    )
+    expect(screen.getByTestId('preview-mode-document')).toHaveAttribute(
+      'aria-checked',
+      'false'
+    )
+  })
+
+  it('calls onModeChange when toggling to presentation', async () => {
+    const { default: userEvent } = await import('@testing-library/user-event')
+    const user = userEvent.setup()
+    const render = makeRenderFn()
+    const onModeChange = vi.fn()
+    rtlRender(
+      <Preview
+        markdown=""
+        themePath="/theme.css"
+        render={render}
+        mode="document"
+        onModeChange={onModeChange}
+      />
+    )
+
+    await user.click(screen.getByTestId('preview-mode-presentation'))
+
+    expect(onModeChange).toHaveBeenCalledTimes(1)
+    expect(onModeChange).toHaveBeenCalledWith('presentation')
+  })
+
+  it('passes "bare" template when mode is document', async () => {
+    const render = makeRenderFn('<html>doc</html>')
+    rtlRender(
+      <Preview
+        markdown="# X"
+        themePath="/theme.css"
+        render={render}
+        mode="document"
+      />
+    )
+
+    await waitFor(
+      () => expect(screen.getByTitle('Marp プレビュー')).toBeInTheDocument(),
+      { timeout: RENDER_WAIT }
+    )
+
+    expect(render).toHaveBeenCalledWith(
+      '# X',
+      '/theme.css',
+      expect.any(AbortSignal),
+      'bare'
+    )
+  })
+
+  it('passes "bespoke" template when mode is presentation', async () => {
+    const render = makeRenderFn('<html>slide</html>')
+    rtlRender(
+      <Preview
+        markdown="# X"
+        themePath="/theme.css"
+        render={render}
+        mode="presentation"
+      />
+    )
+
+    await waitFor(
+      () => expect(screen.getByTitle('Marp プレビュー')).toBeInTheDocument(),
+      { timeout: RENDER_WAIT }
+    )
+
+    expect(render).toHaveBeenCalledWith(
+      '# X',
+      '/theme.css',
+      expect.any(AbortSignal),
+      'bespoke'
+    )
   })
 })
 

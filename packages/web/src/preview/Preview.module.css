@@ -5,24 +5,90 @@
   background: #f5f5f5;
   display: flex;
   flex-direction: column;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+/* dogfood-fix 1: toolbar */
+.toolbar {
+  display: flex;
   align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 12px;
+}
+
+.toolbarLabel {
+  color: #666;
+  font-weight: 500;
+}
+
+.modeGroup {
+  display: inline-flex;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.modeButton {
+  font-size: 12px;
+  padding: 4px 10px;
+  border: none;
+  background: #fff;
+  color: #555;
+  cursor: pointer;
+  border-right: 1px solid #ccc;
+}
+
+.modeButton:last-child {
+  border-right: none;
+}
+
+.modeButton:hover {
+  background: #f5f5f5;
+}
+
+.modeButtonActive {
+  background: #0066cc;
+  color: #fff;
+}
+
+.modeButtonActive:hover {
+  background: #0052a3;
+}
+
+.iframeWrap {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
   overflow: auto;
   padding: 16px;
 }
 
-.iframeWrap {
-  width: 100%;
-  display: flex;
-  justify-content: center;
+/* dogfood-fix 1: document モード時は iframe を縦に長く展開して全 section 表示 */
+.iframeWrapDocument {
+  align-items: stretch;
 }
 
 .iframe {
-  /* A4 縦 (793 x 1122 @96dpi) */
+  /* presentation モード: A4 縦 (793 x 1122 @96dpi) */
   width: 793px;
   height: 1122px;
   border: 1px solid #ddd;
   background: white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* dogfood-fix 1: document モードでは高さを container fill にして iframe 内スクロール */
+.iframeDocument {
+  width: 100%;
+  max-width: 850px;
+  height: 100%;
+  min-height: 600px;
 }
 
 .statusOverlay {

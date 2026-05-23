@@ -10,11 +10,11 @@
  * - /api/export   (PDF binary)
  */
 
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { Editor } from '../editor/Editor'
 import { GenerateDialog, type GenerateInput } from '../editor/GenerateDialog'
-import { Preview, type RenderFn } from '../preview/Preview'
+import { Preview, type PreviewMode, type RenderFn } from '../preview/Preview'
 import {
   Export,
   type ExportOptions,
@@ -81,6 +81,18 @@ ZDD (Zettel駆動開発) で実装中の MVP。
 
 // ===== Component =====
 
+/**
+ * dogfood-fix 1 (2026-05-23): テーマからの auto-suggest。
+ * - slide-* / presentation-* → 'presentation'
+ * - それ以外（カスタム CSS 含む）→ 'document'
+ */
+function inferPreviewMode(theme: ThemeSelection): PreviewMode {
+  if (theme.kind === 'custom') return 'document'
+  const id = theme.themeId
+  if (id.includes('slide') || id.includes('presentation')) return 'presentation'
+  return 'document'
+}
+
 export function App(): JSX.Element {
   const [markdown, setMarkdown] = useState(DEFAULT_MARKDOWN)
   const [currentTheme, setCurrentTheme] = useState<ThemeSelection>({
@@ -94,6 +106,23 @@ export function App(): JSX.Element {
   const [exportStatus, setExportStatus] = useState<ExportStatus>('idle')
   const [exportResult, setExportResult] = useState<ExportResult | undefined>(undefined)
   const [exportError, setExportError] = useState<string | undefined>(undefined)
+
+  // dogfood-fix 1: Preview mode 管理（テーマから auto-suggest + ユーザー手動切替可）
+  const [previewMode, setPreviewMode] = useState<PreviewMode>(() =>
+    inferPreviewMode({ kind: 'bundled', themeId: DEFAULT_THEME_ID })
+  )
+  // テーマ変更時に mode を再 suggest（ユーザーが手動上書きしていた場合は保持しないシンプル方針）
+  useEffect(() => {
+    setPreviewMode(inferPreviewMode(currentTheme))
+  }, [currentTheme])
+
+  // dogfood-fix 2: Blob URL の cleanup（前回 result が変わったら revoke）
+  useEffect(() => {
+    if (!exportResult) return
+    return () => {
+      URL.revokeObjectURL(exportResult.url)
+    }
+  }, [exportResult])
 
   // ===== A6: 現在の markdown から frontmatter values を抽出（panel に渡す） =====
 
@@ -111,12 +140,17 @@ export function App(): JSX.Element {
 
   // ===== Preview render (called by Atom-Preview internally) =====
 
+  // dogfood-fix 1: 第 4 引数 template を Preview から受け取り、middleware に渡す
   const renderPreview: RenderFn = useCallback(
-    async (md, _themePath, signal) => {
+    async (md, _themePath, signal, template) => {
       const response = await fetch('/api/render', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ markdown: md, theme: currentTheme }),
+        body: JSON.stringify({
+          markdown: md,
+          theme: currentTheme,
+          template,
+        }),
         signal,
       })
       if (!response.ok) {
@@ -265,6 +299,8 @@ export function App(): JSX.Element {
             markdown={markdown}
             themePath={THEME_PATH_PLACEHOLDER}
             render={renderPreview}
+            mode={previewMode}
+            onModeChange={setPreviewMode}
           />
         </section>
       </main>

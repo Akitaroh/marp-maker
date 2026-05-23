@@ -96,43 +96,89 @@ describe('Export - rendering state', () => {
   })
 })
 
-describe('Export - ready state', () => {
-  it('shows download link with correct href and download attribute', () => {
+describe('Export - ready state (dogfood-fix 2: auto-DL + inline success)', () => {
+  // jsdom で <a>.click() の自動 DL trigger をモック観察するため、
+  // HTMLAnchorElement.prototype.click を spy
+  it('shows inline success message in ready state', () => {
     const onExport = vi.fn().mockResolvedValue(sampleResult)
     render(<Export onExport={onExport} status="ready" result={sampleResult} />)
 
-    const link = screen.getByRole('link', {
-      name: '生成された PDF をダウンロード',
-    })
-    expect(link).toBeInTheDocument()
-    expect(link).toHaveAttribute('href', sampleResult.url)
-    expect(link).toHaveAttribute('download', sampleResult.filename)
+    expect(screen.getByTestId('export-success')).toBeInTheDocument()
+    expect(screen.getByTestId('export-success').textContent).toContain(
+      'ダウンロード済'
+    )
   })
 
-  it('does NOT show size warning for small files', () => {
+  it('does NOT show download link (auto-DL via useEffect)', () => {
+    const onExport = vi.fn().mockResolvedValue(sampleResult)
+    render(<Export onExport={onExport} status="ready" result={sampleResult} />)
+
+    expect(
+      screen.queryByRole('link', { name: /ダウンロード/ })
+    ).not.toBeInTheDocument()
+  })
+
+  it('does NOT show file size for small files', () => {
     const onExport = vi.fn().mockResolvedValue(sampleResult)
     render(<Export onExport={onExport} status="ready" result={sampleResult} />)
 
     expect(screen.queryByText(/MB/)).not.toBeInTheDocument()
   })
 
-  it('shows large file warning when sizeBytes > 5MB', () => {
+  it('shows file size inline when sizeBytes > 5MB', () => {
     const onExport = vi.fn().mockResolvedValue(sampleResult)
     const largeResult: ExportResult = { ...sampleResult, sizeBytes: 6_500_000 }
     render(<Export onExport={onExport} status="ready" result={largeResult} />)
 
-    expect(screen.getByText(/6\.5 MB/)).toBeInTheDocument()
+    expect(screen.getByTestId('export-success').textContent).toContain('6.5 MB')
   })
 
-  it('download link label adapts to format (PPTX)', () => {
+  it('triggers programmatic download on ready state (auto-DL)', () => {
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click')
+    const onExport = vi.fn().mockResolvedValue(sampleResult)
+    render(<Export onExport={onExport} status="ready" result={sampleResult} />)
+
+    expect(clickSpy).toHaveBeenCalledTimes(1)
+    clickSpy.mockRestore()
+  })
+
+  it('does NOT re-trigger download for same result (idempotency)', () => {
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click')
+    const onExport = vi.fn().mockResolvedValue(sampleResult)
+    const { rerender } = render(
+      <Export onExport={onExport} status="ready" result={sampleResult} />
+    )
+    rerender(<Export onExport={onExport} status="ready" result={sampleResult} />)
+
+    expect(clickSpy).toHaveBeenCalledTimes(1)  // 1 回のみ
+    clickSpy.mockRestore()
+  })
+
+  it('triggers download again when result.url changes', () => {
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click')
+    const onExport = vi.fn().mockResolvedValue(sampleResult)
+    const { rerender } = render(
+      <Export onExport={onExport} status="ready" result={sampleResult} />
+    )
+    const secondResult: ExportResult = {
+      ...sampleResult,
+      url: 'blob:http://localhost/xyz-456',
+    }
+    rerender(<Export onExport={onExport} status="ready" result={secondResult} />)
+
+    expect(clickSpy).toHaveBeenCalledTimes(2)
+    clickSpy.mockRestore()
+  })
+
+  it('success inline label adapts to format (PPTX)', () => {
     const onExport = vi.fn().mockResolvedValue(sampleResult)
     render(
       <Export onExport={onExport} status="ready" result={pptxResult()} />
     )
 
-    expect(
-      screen.getByRole('link', { name: '生成された PPTX をダウンロード' })
-    ).toBeInTheDocument()
+    // aria-label に "PPTX をダウンロードしました" が含まれる
+    const success = screen.getByTestId('export-success')
+    expect(success.getAttribute('aria-label')).toContain('PPTX')
   })
 })
 

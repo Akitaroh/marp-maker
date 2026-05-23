@@ -50,8 +50,16 @@ const MARP_CONFIG_PATH = path.resolve(__dirname, '../../marp.config.mjs')
 
 // ===== 入力型 (discriminated union) =====
 
+/** HTML 出力時の template 選択 (dogfood-fix 1, 2026-05-23) */
+export type HtmlTemplate = 'bespoke' | 'bare'
+
 export type RenderInput =
-  | { markdown: string; themePath: string; format: 'html' }
+  | {
+      markdown: string
+      themePath: string
+      format: 'html'
+      template?: HtmlTemplate  // default: 'bespoke'（既存挙動）
+    }
   | {
       markdown: string
       themePath: string
@@ -148,8 +156,14 @@ function buildArgs(
     '--allow-local-files',
   ]
   switch (input.format) {
-    case 'html':
-      return [...common, '-o', outPath]
+    case 'html': {
+      // dogfood-fix 1 (2026-05-23): template 切替対応
+      // bespoke (default): プレゼン用ページめくり
+      // bare: ホワイトペーパー用、全 SVG section が body 直下に並ぶ
+      const templateArgs =
+        input.template === 'bare' ? ['--template', 'bare'] : []
+      return [...common, ...templateArgs, '-o', outPath]
+    }
     case 'pdf':
       return [
         ...common,

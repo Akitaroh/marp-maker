@@ -130,6 +130,7 @@ export function apiPlugin(): Plugin {
       })
 
       // POST /api/render (HTML)
+      // dogfood-fix 1 (2026-05-23): body.template で bespoke / bare 切替対応
       server.middlewares.use('/api/render', async (req, res, next) => {
         if (req.method !== 'POST') return next()
         let themePath: string | null = null
@@ -138,12 +139,14 @@ export function apiPlugin(): Plugin {
             markdown: string
             theme?: ThemeSelection
             themeId?: string  // legacy
+            template?: 'bespoke' | 'bare'
           }
           themePath = await resolveThemePath(parseThemeFromBody(body))
           const result = await renderMarp({
             markdown: body.markdown,
             themePath,
             format: 'html',
+            template: body.template,
           })
           if (result.format !== 'html') {
             sendJson(res, 500, { error: 'unexpected format' })

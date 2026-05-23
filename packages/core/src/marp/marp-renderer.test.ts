@@ -63,7 +63,7 @@ describe('renderMarp - error cases (unit)', () => {
 // ===== 統合テスト（marp-cli 実起動、RUN_INTEGRATION=1 のみ）=====
 
 describe.skipIf(!RUN_INTEGRATION)('renderMarp - integration (marp-cli)', () => {
-  it('renders HTML from simple markdown', async () => {
+  it('renders HTML from simple markdown (default = bespoke template)', async () => {
     const result = await renderMarp({
       markdown: simpleMarkdown,
       themePath: BUNDLED_THEME,
@@ -77,6 +77,29 @@ describe.skipIf(!RUN_INTEGRATION)('renderMarp - integration (marp-cli)', () => {
       expect(result.htmlString).toContain('テストタイトル')
       // テーマ CSS が反映されている兆候
       expect(result.htmlString).toMatch(/whitepaper-a4|<style>/i)
+      // dogfood-fix 1: default は bespoke template (bespoke-marp class が出る)
+      expect(result.htmlString).toContain('bespoke-marp')
+    }
+  }, 90_000)
+
+  it('renders HTML with bare template (dogfood-fix 1)', async () => {
+    const result = await renderMarp({
+      markdown: simpleMarkdown,
+      themePath: BUNDLED_THEME,
+      format: 'html',
+      template: 'bare',
+    })
+
+    expect(result.format).toBe('html')
+    if (result.format === 'html') {
+      // bare template では bespoke の JS / class は出ない
+      expect(result.htmlString).not.toContain('bespoke-marp')
+      // 各 section が body 直下に並ぶ（複数 page = 2 section）
+      const sectionCount = (result.htmlString.match(/<section/g) || []).length
+      expect(sectionCount).toBeGreaterThanOrEqual(2)
+      // テキストは含まれる
+      expect(result.htmlString).toContain('テストタイトル')
+      expect(result.htmlString).toContain('ページ 2')
     }
   }, 90_000)
 
