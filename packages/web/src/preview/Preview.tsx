@@ -120,15 +120,29 @@ export function Preview(props: PreviewProps): JSX.Element {
       : htmlString
 
   /**
-   * iframe load 時、document mode では以下を実行:
+   * iframe load 時の処理（mode 別）
+   *
+   * document mode:
    * 1. body.scrollHeight に合わせて iframe height を auto-fit
    * 2. iframe 内の wheel event を親 wrap に forward
    *    (iframe は wheel event を吸収するため、明示的に親側 scroll をトリガする)
+   *
+   * presentation mode:
+   * - iframe.style.height を解除（CSS の default に戻す = 1122px 等の slide サイズ）
+   * - bespoke template は自前で 1 ページずつ管理するので height auto-fit 不要
    */
   const handleIframeLoad = (): void => {
-    if (mode !== 'document') return
     const iframe = iframeRef.current
     if (!iframe?.contentDocument) return
+
+    if (mode === 'presentation') {
+      // dogfood-fix 1 続編 2: document mode で設定した style.height を解除
+      // これがないと slide mode 切替時も 2912px のまま縦長になる
+      iframe.style.height = ''
+      return
+    }
+
+    // mode === 'document':
 
     // (1) auto-fit height
     const contentHeight = iframe.contentDocument.body.scrollHeight
