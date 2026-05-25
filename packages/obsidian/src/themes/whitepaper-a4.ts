@@ -1,0 +1,126 @@
+/**
+ * whitepaper-a4 marp テーマ（A4 縦 + ブランド）。
+ *
+ * 出典: packages/core/themes/whitepaper-a4.css から read-only コピー
+ *（Molecule-obsidian-plugin の「core の whitepaper-a4.css は import / コピーで read-only 利用」規約）。
+ * 配布プラグインを self-contained にするため文字列で同梱し、core への
+ * ランタイム依存を持たせない（既存 core/web/mcp は非改変）。
+ *
+ * NOTE(drift): core 側の whitepaper-a4.css を更新したら、ここも手動で同期する。
+ * marp-core 描画ロジック共有と合わせて N=3 で共有 util への抽出を検討（既存非改変前提）。
+ */
+export const WHITEPAPER_A4_THEME_NAME = 'whitepaper-a4'
+
+export const WHITEPAPER_A4_CSS = `/* @theme whitepaper-a4 */
+/* @size A4 793px 1122px */
+@import 'default';
+
+section {
+  width: 793px;
+  height: 1122px;
+  padding: 60px;
+  background: #ffffff;
+  color: #1a1a1a;
+  font-family: 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+  font-size: 12pt;
+  line-height: 1.7;
+}
+
+section h1 {
+  color: #0066cc;
+  font-size: 32pt;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+
+section h2 {
+  color: #1a1a1a;
+  font-size: 24pt;
+  font-weight: 700;
+  border-bottom: 2px solid #0066cc;
+  padding-bottom: 8px;
+  margin-top: 32px;
+  margin-bottom: 16px;
+}
+
+section h3 {
+  font-size: 18pt;
+  font-weight: 700;
+  margin-top: 24px;
+  margin-bottom: 12px;
+}
+
+section p {
+  margin-bottom: 12px;
+}
+
+section ul,
+section ol {
+  margin-bottom: 16px;
+}
+
+section li {
+  margin-bottom: 6px;
+}
+
+section blockquote {
+  border-left: 4px solid #0066cc;
+  padding-left: 16px;
+  margin: 16px 0;
+  color: #555;
+  font-style: italic;
+}
+
+section code {
+  background: #f5f5f5;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: 'SF Mono', Consolas, monospace;
+  font-size: 11pt;
+}
+
+section pre {
+  background: #f5f5f5;
+  padding: 16px;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+section table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+}
+
+section table th,
+section table td {
+  border: 1px solid #ddd;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+section table th {
+  background: #f0f7ff;
+  font-weight: 700;
+}
+
+section footer {
+  position: absolute;
+  bottom: 30px;
+  left: 60px;
+  right: 60px;
+  font-size: 9pt;
+  color: #888;
+  border-top: 1px solid #eee;
+  padding-top: 8px;
+}
+
+section::after {
+  /* paginate: ページ番号 */
+  position: absolute;
+  bottom: 30px;
+  right: 60px;
+  color: #888;
+  font-size: 9pt;
+}
+`

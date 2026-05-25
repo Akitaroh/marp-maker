@@ -1,0 +1,19 @@
+.marp-maker-preview {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.marp-maker-status {
+  font-size: 12px;
+  opacity: 0.7;
+  padding: 6px 10px;
+  flex: 0 0 auto;
+}
+
+.marp-maker-iframe {
+  flex: 1 1 auto;
+  width: 100%;
+  border: 0;
+  background: #ffffff;
+}

@@ -1,0 +1,23 @@
+{
+  "name": "@akitaroh/marp-obsidian",
+  "version": "0.0.1",
+  "description": "MarpMaker Obsidian Plugin — preview Marp whitepapers in your Vault (marp-core in-renderer)",
+  "private": true,
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "node esbuild.config.mjs production",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@marp-team/marp-core": "^4.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "esbuild": "^0.24.0",
+    "obsidian": "^1.7.2",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}

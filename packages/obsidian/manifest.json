@@ -1,0 +1,10 @@
+{
+  "id": "marp-maker",
+  "name": "MarpMaker",
+  "version": "0.0.1",
+  "minAppVersion": "1.4.0",
+  "description": "Preview Marp Markdown decks/whitepapers in your Vault, rendered with marp-core (no external Chrome).",
+  "author": "akitaroh",
+  "authorUrl": "https://github.com/Akitaroh",
+  "isDesktopOnly": false
+}
