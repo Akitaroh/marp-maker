@@ -78,4 +78,28 @@ describe('createVaultIO', () => {
     expect(v.modifyBinary).toHaveBeenCalled()
     expect(v.createBinary).not.toHaveBeenCalled()
   })
+
+  it('readCssInFolder: フォルダ内の .css だけ読む', async () => {
+    const folder = {
+      children: [
+        { extension: 'css', _content: '/* @theme a */' },
+        { extension: 'css', _content: '/* @theme b */' },
+        { extension: 'md', _content: '# not css' },
+      ],
+    }
+    const v = fakeVault({ 'marp-themes': folder as unknown as FakeFile })
+    const io = createVaultIO(v as never)
+    const cssList = await io.readCssInFolder('marp-themes')
+    expect(cssList).toEqual(['/* @theme a */', '/* @theme b */'])
+  })
+
+  it('readCssInFolder: 空パスは []', async () => {
+    const io = createVaultIO(fakeVault() as never)
+    expect(await io.readCssInFolder('')).toEqual([])
+  })
+
+  it('readCssInFolder: フォルダが無ければ []', async () => {
+    const io = createVaultIO(fakeVault() as never)
+    expect(await io.readCssInFolder('nope')).toEqual([])
+  })
 })

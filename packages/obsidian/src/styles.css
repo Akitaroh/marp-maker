@@ -4,11 +4,36 @@
   height: 100%;
 }
 
+.marp-maker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  flex: 0 0 auto;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
 .marp-maker-status {
   font-size: 12px;
   opacity: 0.7;
-  padding: 6px 10px;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.marp-maker-theme-select {
   flex: 0 0 auto;
+  font-size: 12px;
+  max-width: 40%;
+}
+
+.marp-maker-export-btn {
+  flex: 0 0 auto;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px 10px;
 }
 
 .marp-maker-iframe {

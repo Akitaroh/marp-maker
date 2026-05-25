@@ -16,6 +16,8 @@ export interface VaultIO {
   writeText(path: string, text: string): Promise<TFile>
   /** バイナリ（PDF 等）を書く（存在すれば上書き、なければ新規作成） */
   writeBinary(path: string, data: ArrayBuffer): Promise<TFile>
+  /** フォルダ内の .css をすべて読む（カスタムテーマ用、フォルダ無効時は []） */
+  readCssInFolder(folder: string): Promise<string[]>
 }
 
 export function createVaultIO(vault: Vault): VaultIO {
@@ -48,6 +50,20 @@ export function createVaultIO(vault: Vault): VaultIO {
         return existing
       }
       return vault.createBinary(normalized, data)
+    },
+
+    async readCssInFolder(folder: string): Promise<string[]> {
+      if (!folder) return []
+      const af = vault.getAbstractFileByPath(normalizePath(folder))
+      // duck-typed: TFolder は children を持つ
+      if (!af || !('children' in af)) return []
+      const children = (af as { children: unknown[] }).children
+      const cssFiles = children.filter(
+        (c): c is TFile =>
+          !!c && typeof c === 'object' && 'extension' in c &&
+          (c as TFile).extension === 'css',
+      )
+      return Promise.all(cssFiles.map((f) => vault.cachedRead(f)))
     },
   }
 }

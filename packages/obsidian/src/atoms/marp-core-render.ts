@@ -13,28 +13,38 @@ export interface RenderResult {
   css: string
 }
 
+export interface RenderMarpOptions {
+  /** 追加登録する theme CSS（バンドル whitepaper-a4 + Vault カスタム）。 */
+  themes?: string[]
+  /** 既定テーマ名（deck の `theme:` 指定があればそちらが優先）。 */
+  defaultThemeName?: string
+}
+
 /**
- * marp-core 描画関数を作る。themeCss を渡すとブランド CSS（whitepaper-a4 等）を
- * themeSet に登録し、**既定テーマ**にする。
+ * marp-core 描画関数を作る。`themes` の CSS を themeSet に登録し、`defaultThemeName`
+ * を既定テーマにする（組込 default/gaia/uncover も名前で指定可）。
  *
  * テーマ解決順は marp（marpit）の仕様で「markdown の `theme:` ディレクティブ >
- * themeSet.default > 組込デフォルト」。よって whitepaper-a4 を default にしても、
- * deck 側で `theme: 別テーマ` を明示すればそちらが優先される（上書き可能）。
- * これで MarpMaker で開いた deck は既定で A4 ブランド見た目になる（差別化）。
+ * themeSet.default > 組込デフォルト」。よって既定テーマを設定しても、deck 側で
+ * `theme: 別テーマ` を明示すればそちらが優先される（＝選択可能）。
  */
 export function createRenderMarp(
-  themeCss?: string,
+  opts?: RenderMarpOptions,
 ): (markdown: string) => RenderResult {
+  const themes = opts?.themes ?? []
+  const defaultThemeName = opts?.defaultThemeName
   return (markdown: string): RenderResult => {
     const marp = new Marp()
-    if (themeCss) {
+    for (const css of themes) {
       try {
-        const theme = marp.themeSet.add(themeCss)
-        // 既定テーマに（deck の theme: 指定があればそちらが優先される）
-        marp.themeSet.default = theme
+        marp.themeSet.add(css)
       } catch {
-        /* 不正な theme CSS は無視してデフォルトで描画 */
+        /* 不正な theme CSS は無視（他テーマ + 組込で描画継続） */
       }
+    }
+    if (defaultThemeName) {
+      const theme = marp.themeSet.get(defaultThemeName)
+      if (theme) marp.themeSet.default = theme
     }
     const { html, css } = marp.render(markdown)
     return { html, css }

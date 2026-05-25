@@ -18,13 +18,35 @@ describe('createRenderMarp', () => {
   })
 
   it('whitepaper-a4 を既定テーマに適用（A4 幅 793px が css に出る）', () => {
-    const render = createRenderMarp(WHITEPAPER_A4_CSS)
+    const render = createRenderMarp({
+      themes: [WHITEPAPER_A4_CSS],
+      defaultThemeName: 'whitepaper-a4',
+    })
     const { css } = render('# Hello')
     expect(css).toContain('793px')
   })
 
-  it('不正な theme css でも throw せずデフォルト描画にフォールバック', () => {
-    const render = createRenderMarp('これは正しくない theme css {{{')
+  it('defaultThemeName で組込テーマ（gaia）を既定にできる', () => {
+    const render = createRenderMarp({
+      themes: [WHITEPAPER_A4_CSS],
+      defaultThemeName: 'gaia',
+    })
+    const { css } = render('# Hello')
+    // gaia は 16:9。A4 幅 793px は出ない
+    expect(css).not.toContain('793px')
+  })
+
+  it('deck の theme: 指定が既定テーマより優先される', () => {
+    const render = createRenderMarp({
+      themes: [WHITEPAPER_A4_CSS],
+      defaultThemeName: 'whitepaper-a4',
+    })
+    const { css } = render('---\ntheme: default\n---\n# Hi')
+    expect(css).not.toContain('793px')
+  })
+
+  it('不正な theme css でも throw せず他テーマ/組込で描画継続', () => {
+    const render = createRenderMarp({ themes: ['これは正しくない theme css {{{'] })
     expect(() => render('# Hi')).not.toThrow()
   })
 })
