@@ -1,0 +1,21 @@
+{
+  "name": "mcp-apps-hello-spike",
+  "private": true,
+  "type": "module",
+  "description": "検証1: MCP Apps が Claude Desktop で iframe を出すか確かめる最小 hello-world (使い捨て spike)",
+  "scripts": {
+    "build": "INPUT=mcp-app.html vite build && INPUT=marp-app.html vite build",
+    "start:stdio": "tsx server.ts"
+  },
+  "dependencies": {
+    "@marp-team/marp-core": "^4.3.0",
+    "@modelcontextprotocol/ext-apps": "^1.7.2",
+    "@modelcontextprotocol/sdk": "^1.29.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.0",
+    "vite": "^6.0.0",
+    "vite-plugin-singlefile": "^2.3.0"
+  }
+}

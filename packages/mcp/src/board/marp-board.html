@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Marp Board</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        margin: 0;
+        padding: 12px;
+      }
+      #status {
+        font-size: 12px;
+        opacity: 0.75;
+        margin: 0 0 10px;
+        padding: 5px 10px;
+        border-radius: 8px;
+        background: rgba(127, 127, 127, 0.12);
+      }
+      #slide {
+        border: 1px solid rgba(127, 127, 127, 0.3);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      #slide svg[data-marpit-svg] {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      #nav {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        margin-top: 10px;
+      }
+      #nav button {
+        padding: 6px 16px;
+        font-size: 14px;
+        cursor: pointer;
+        border-radius: 8px;
+        border: 1px solid rgba(127, 127, 127, 0.4);
+        background: transparent;
+        color: inherit;
+      }
+      #nav button:disabled {
+        opacity: 0.35;
+        cursor: default;
+      }
+      #pageinfo {
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+        min-width: 56px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="status">⏳ connecting…</div>
+    <div id="slide"></div>
+    <div id="nav">
+      <button id="prev">◀ 前</button>
+      <span id="pageinfo">– / –</span>
+      <button id="next">次 ▶</button>
+    </div>
+    <script type="module" src="./marp-board.ts"></script>
+  </body>
+</html>

@@ -84,7 +84,7 @@ export type RenderInput =
 export type RenderOutput =
   | { format: 'html'; htmlString: string }
   | { format: 'pdf'; filePath: string }
-  | { format: 'png'; pngBuffers: Buffer[] }
+  | { format: 'png'; filePaths: string[] }  // ページごとに 1 ファイル、OS tmpdir に独立コピー（PDF/PPTX と同じ一時ファイル提供。MCP 越しの context 爆発回避、2026-05-24 v2-1）
   | { format: 'pptx'; filePath: string }  // A5 で追加、PDF と同じ「一時ファイル提供」パターン
 
 // ===== エラー型 =====
@@ -267,20 +267,32 @@ function classifyError(result: ProcessResult): RenderError {
   })
 }
 
-async function readPngOutputs(
+/**
+ * 内部 tmpDir 内の slide.NNN.png を OS tmpdir に独立コピーし、安定パスの配列を返す。
+ * PDF / PPTX の copyToStablePath と同じ「一時ファイル提供」パターンの複数ファイル版。
+ * MCP 越しに Buffer[] を返すと byte 配列がインライン展開され context 爆発するため path 返し。
+ */
+async function copyPngOutputsToStablePaths(
   tmpDir: string,
   pageRange?: [number, number]
-): Promise<Buffer[]> {
+): Promise<string[]> {
   const files = await fs.readdir(tmpDir)
-  const pngFiles = files.filter((f) => /^slide\.\d{3}\.png$/.test(f)).sort()
-  let buffers: Buffer[] = await Promise.all(
-    pngFiles.map((f) => fs.readFile(path.join(tmpDir, f)))
-  )
+  let pngFiles = files.filter((f) => /^slide\.\d{3}\.png$/.test(f)).sort()
   if (pageRange) {
     const [start, end] = pageRange
-    buffers = buffers.slice(start - 1, end)
+    pngFiles = pngFiles.slice(start - 1, end)
   }
-  return buffers
+  const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+  return Promise.all(
+    pngFiles.map(async (f, i) => {
+      const dest = path.join(
+        os.tmpdir(),
+        `marp-png-${stamp}-${String(i + 1).padStart(3, '0')}.png`
+      )
+      await fs.copyFile(path.join(tmpDir, f), dest)
+      return dest
+    })
+  )
 }
 
 /**
@@ -372,8 +384,8 @@ export async function renderMarp(input: RenderInput): Promise<RenderOutput> {
         return { format: 'pdf', filePath }
       }
       case 'png': {
-        const pngBuffers = await readPngOutputs(tmpDir, input.pageRange)
-        return { format: 'png', pngBuffers }
+        const filePaths = await copyPngOutputsToStablePaths(tmpDir, input.pageRange)
+        return { format: 'png', filePaths }
       }
       case 'pptx': {
         // A5: PPTX 出力。LibreOffice headless 必要、未搭載環境では classifyError が render-failed を返す

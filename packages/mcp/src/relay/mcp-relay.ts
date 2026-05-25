@@ -8,10 +8,19 @@
  * 設計: 50_Mission/zddmission/MarpMaker/Atom-McpRelay.md
  */
 
+import { readFile } from 'node:fs/promises'
 import { z } from 'zod'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js'
+import {
+  registerAppResource,
+  registerAppTool,
+  RESOURCE_MIME_TYPE,
+} from '@modelcontextprotocol/ext-apps/server'
+import type {
+  CallToolResult,
+  ReadResourceResult,
+} from '@modelcontextprotocol/sdk/types.js'
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js'
 import type {
   GenerateInput,
@@ -42,6 +51,11 @@ export interface McpRelayOptions {
   serverVersion?: string
   /** Custom transport for testing (default: StdioServerTransport). */
   transport?: Transport
+  /**
+   * Absolute path to the built board UI HTML (dist/board/marp-board.html).
+   * If set, registers the `show_marp` MCP Apps board + its ui:// resource.
+   */
+  boardHtmlPath?: string
 }
 
 export interface McpRelayHandle {
@@ -104,9 +118,9 @@ const renderSchema = {
     .optional()
     .describe('HTML format only: "bespoke" (default, presentation) or "bare" (document)'),
   pageRange: z
-    .tuple([z.number().int().positive(), z.number().int().positive()])
+    .array(z.number().int().positive())
     .optional()
-    .describe('PNG format only: [start, end] 1-indexed page range'),
+    .describe('PNG format only: [start, end] 1-indexed page range (2 elements)'),
 }
 
 const issueSchema = z.object({
@@ -128,9 +142,9 @@ const detectSchema = {
   markdown: z.string().describe('Marp Markdown source'),
   themePath: z.string().describe('Absolute path to a theme CSS file'),
   pageRange: z
-    .tuple([z.number().int().positive(), z.number().int().positive()])
+    .array(z.number().int().positive())
     .optional()
-    .describe('[start, end] 1-indexed page range to check'),
+    .describe('[start, end] 1-indexed page range to check (2 elements)'),
   maxIssuesPerPage: z.number().int().positive().optional(),
   severityThreshold: z
     .enum(['high', 'medium', 'low'])
@@ -263,6 +277,60 @@ export function registerMarpMcpTools(
 }
 
 // ─────────────────────────────────────────────────────────────────
+// registerMarpBoard — MCP Apps 会話内 board (show_marp + ui:// resource)
+//   ext-apps の helper で同じ McpServer に登録。boardHtmlPath は
+//   ビルド済み board UI (vite-singlefile) の絶対パス（テスト容易性のため注入）。
+//   設計: 50_Mission/zddmission/MarpMaker/Atom-MarpBoard.md
+// ─────────────────────────────────────────────────────────────────
+
+const BOARD_RESOURCE_URI = 'ui://marp/board.html'
+
+const showSchema = {
+  markdown: z
+    .string()
+    .describe(
+      'Marp Markdown to display in the conversation board (rendered client-side with marp-core, paged)'
+    ),
+}
+
+export function registerMarpBoard(server: McpServer, boardHtmlPath: string): void {
+  registerAppTool(
+    server,
+    'show_marp',
+    {
+      title: 'Show Marp Board',
+      description: [
+        'Display Marp Markdown as an interactive paged board inside the',
+        'conversation (renders client-side with marp-core). Works in MCP Apps',
+        'capable clients (VS Code Copilot / Cursor / ChatGPT / Claude web).',
+        'Other clients receive the markdown as text.',
+      ].join(' '),
+      inputSchema: showSchema,
+      _meta: { ui: { resourceUri: BOARD_RESOURCE_URI } },
+    },
+    async (args): Promise<CallToolResult> => {
+      const markdown = (args as { markdown: string }).markdown
+      return { content: [{ type: 'text', text: markdown }] }
+    }
+  )
+
+  registerAppResource(
+    server,
+    BOARD_RESOURCE_URI,
+    BOARD_RESOURCE_URI,
+    { mimeType: RESOURCE_MIME_TYPE },
+    async (): Promise<ReadResourceResult> => {
+      const html = await readFile(boardHtmlPath, 'utf-8')
+      return {
+        contents: [
+          { uri: BOARD_RESOURCE_URI, mimeType: RESOURCE_MIME_TYPE, text: html },
+        ],
+      }
+    }
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────
 // startMcpServer — create server, register tools, connect transport
 // ─────────────────────────────────────────────────────────────────
 
@@ -293,6 +361,9 @@ export async function startMcpServer(
   })
 
   registerMarpMcpTools(server, deps)
+  if (options.boardHtmlPath) {
+    registerMarpBoard(server, options.boardHtmlPath)
+  }
 
   const transport = options.transport ?? new StdioServerTransport()
   try {

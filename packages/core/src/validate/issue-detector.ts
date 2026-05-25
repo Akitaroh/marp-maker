@@ -10,6 +10,8 @@
  * - fail-soft: API/JSON エラー時は空配列、上位の視覚検証ループを止めない
  */
 
+import { readFile, rm } from 'node:fs/promises'
+
 import Anthropic from '@anthropic-ai/sdk'
 
 import { renderMarp, type RenderInput, type RenderOutput } from '../marp/marp-renderer.js'
@@ -254,7 +256,11 @@ export async function detectIssues(
           }
     const result = await renderer(renderInput)
     if (result.format !== 'png') return []
-    pngBuffers = result.pngBuffers
+    // renderer は path を返す（v2-1）。読み込んで Buffer 化し、temp ファイルは即削除
+    pngBuffers = await Promise.all(result.filePaths.map((p) => readFile(p)))
+    await Promise.all(
+      result.filePaths.map((p) => rm(p, { force: true }).catch(() => {}))
+    )
   } catch {
     return [] // fail-soft
   }

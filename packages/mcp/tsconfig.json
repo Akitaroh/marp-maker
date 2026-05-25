@@ -9,5 +9,5 @@
     "types": ["node", "vitest/globals"]
   },
   "include": ["src/**/*"],
-  "exclude": ["**/*.test.ts", "dist", "node_modules"]
+  "exclude": ["**/*.test.ts", "src/board/**", "dist", "node_modules"]
 }

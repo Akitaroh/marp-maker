@@ -113,12 +113,14 @@ describe.skipIf(!RUN_INTEGRATION)('renderMarp - integration (marp-cli)', () => {
     expect(result.format).toBe('png')
     if (result.format === 'png') {
       // simpleMarkdown は frontmatter + 2 ページ → 区切り `---` が 3 個 = 2 ページレンダ
-      expect(result.pngBuffers.length).toBeGreaterThanOrEqual(2)
-      // 各 buffer が PNG マジックナンバーで始まる
-      for (const buf of result.pngBuffers) {
+      expect(result.filePaths.length).toBeGreaterThanOrEqual(2)
+      // 各 path が存在し、PNG マジックナンバーで始まる（読後に削除）
+      for (const p of result.filePaths) {
+        const buf = await fs.readFile(p)
         expect(buf.byteLength).toBeGreaterThan(0)
         expect(buf[0]).toBe(0x89)
         expect(buf[1]).toBe(0x50) // P
+        await fs.rm(p, { force: true })
       }
     }
   }, 120_000)
@@ -133,7 +135,8 @@ describe.skipIf(!RUN_INTEGRATION)('renderMarp - integration (marp-cli)', () => {
 
     expect(result.format).toBe('png')
     if (result.format === 'png') {
-      expect(result.pngBuffers.length).toBe(1)
+      expect(result.filePaths.length).toBe(1)
+      await fs.rm(result.filePaths[0]!, { force: true })
     }
   }, 120_000)
 

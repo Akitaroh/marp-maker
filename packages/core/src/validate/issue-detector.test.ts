@@ -10,6 +10,9 @@
  */
 
 import { describe, it, expect, vi } from 'vitest'
+import { writeFile } from 'node:fs/promises'
+import * as os from 'node:os'
+import * as path from 'node:path'
 import Anthropic from '@anthropic-ai/sdk'
 
 import { detectIssues, type DetectInput, type RendererFn } from './issue-detector'
@@ -51,12 +54,24 @@ function makeMockClient(
 function makeMockRenderer(pageCount: number): RendererFn {
   return vi.fn(async (input) => {
     if (input.format !== 'png') throw new Error('expected png format')
-    const buffers = Array.from({ length: pageCount }, () => makePng())
+    let buffers = Array.from({ length: pageCount }, () => makePng())
     if (input.pageRange) {
       const [start, end] = input.pageRange
-      return { format: 'png', pngBuffers: buffers.slice(start - 1, end) }
+      buffers = buffers.slice(start - 1, end)
     }
-    return { format: 'png', pngBuffers: buffers }
+    // v2-1: renderer は path を返す契約。fake PNG を temp ファイルに書き出してパスを返す
+    // (detectIssues 側が読込後に削除する)
+    const filePaths = await Promise.all(
+      buffers.map(async (buf, i) => {
+        const p = path.join(
+          os.tmpdir(),
+          `mock-png-${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${i}.png`
+        )
+        await writeFile(p, buf)
+        return p
+      })
+    )
+    return { format: 'png', filePaths }
   })
 }
 

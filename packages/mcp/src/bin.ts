@@ -23,6 +23,7 @@
  *                        session-level credentials)
  */
 
+import path from 'node:path'
 import {
   generateMarp,
   renderMarp,
@@ -34,12 +35,21 @@ import { startMcpServer } from './relay/mcp-relay.js'
 async function main(): Promise<void> {
   // Bind detectIssues' renderer dependency to the real renderMarp here so
   // McpRelay can stay pure (4 deps, no nested options).
-  const handle = await startMcpServer({
-    generateMarp,
-    renderMarp,
-    detectIssues: (input) => detectIssues(input, { renderer: renderMarp }),
-    suggestFix,
-  })
+  // Built board UI (vite-singlefile). Resolve to dist/board/marp-board.html
+  // whether running compiled (node dist/bin.js) or via tsx (src/bin.ts).
+  const boardHtmlPath = import.meta.filename.endsWith('.ts')
+    ? path.join(import.meta.dirname, '..', 'dist', 'board', 'marp-board.html')
+    : path.join(import.meta.dirname, 'board', 'marp-board.html')
+
+  const handle = await startMcpServer(
+    {
+      generateMarp,
+      renderMarp,
+      detectIssues: (input) => detectIssues(input, { renderer: renderMarp }),
+      suggestFix,
+    },
+    { boardHtmlPath }
+  )
 
   // stderr because MCP uses stdio for protocol traffic
   console.error('[marp-mcp] MCP server ready on stdio.')

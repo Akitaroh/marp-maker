@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Hello MCP App</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        padding: 24px;
+        line-height: 1.6;
+      }
+      h1 {
+        font-size: 20px;
+        margin: 0 0 8px;
+      }
+      .muted {
+        opacity: 0.7;
+        font-size: 13px;
+      }
+      #status {
+        font-weight: 600;
+        margin: 16px 0;
+        padding: 8px 12px;
+        border-radius: 8px;
+        background: rgba(127, 127, 127, 0.12);
+      }
+      button {
+        padding: 8px 16px;
+        font-size: 14px;
+        cursor: pointer;
+        border-radius: 8px;
+        border: 1px solid rgba(127, 127, 127, 0.4);
+        background: transparent;
+        color: inherit;
+      }
+      #result {
+        margin-top: 12px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        background: rgba(127, 127, 127, 0.12);
+        font-family: ui-monospace, monospace;
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>👋 Hello from an MCP App</h1>
+    <p class="muted">
+      この文章が会話の中に表示されていれば iframe 描画は成功（issue #165 の前半クリア）。
+    </p>
+    <div id="status">⏳ connecting to host…</div>
+    <button id="call-btn">Call hello_board tool</button>
+    <div id="result">—</div>
+    <script type="module" src="/src/mcp-app.ts"></script>
+  </body>
+</html>
