@@ -12,6 +12,7 @@ import { createRenderMarp, type RenderResult } from './atoms/marp-core-render'
 import { registerCommands } from './atoms/command-registry'
 import { createVaultIO, type VaultIO } from './atoms/vault-io'
 import { exportDeck } from './atoms/pdf-exporter'
+import { buildProfilePptx } from './pptx/profile-pptx'
 import { hasMarpFrontmatter } from './atoms/marp-file'
 import { availableThemeNames, toThemeEntries } from './atoms/theme-registry'
 import {
@@ -23,6 +24,7 @@ import { WHITEPAPER_A4_CSS } from './themes/whitepaper-a4'
 import { OYAKUDACHI_CSS } from './themes/oyakudachi'
 import { WHITEPAPER_PRO_CSS } from './themes/whitepaper-pro'
 import { MONOCHROME_CSS } from './themes/monochrome'
+import { PROFILE_CSS } from './themes/profile'
 import './styles.css'
 
 export default class MarpMakerPlugin extends Plugin {
@@ -59,6 +61,7 @@ export default class MarpMakerPlugin extends Plugin {
     registerCommands(this, {
       onOpenPreview: () => this.activatePreview(),
       onExport: () => this.exportActiveDeck(),
+      onExportProfilePptx: () => this.exportProfilePptx(),
     })
 
     this.addSettingTab(
@@ -97,7 +100,7 @@ export default class MarpMakerPlugin extends Plugin {
       this.settings.themesFolder,
     )
     this.renderImpl = createRenderMarp({
-      themes: [WHITEPAPER_A4_CSS, OYAKUDACHI_CSS, WHITEPAPER_PRO_CSS, MONOCHROME_CSS, ...this.customThemeCss],
+      themes: [WHITEPAPER_A4_CSS, OYAKUDACHI_CSS, WHITEPAPER_PRO_CSS, MONOCHROME_CSS, PROFILE_CSS, ...this.customThemeCss],
       defaultThemeName: this.settings.defaultTheme,
     })
   }
@@ -142,6 +145,31 @@ export default class MarpMakerPlugin extends Plugin {
       new Notice(`✅ ${result.kind.toUpperCase()} を書き出しました: ${result.path}`)
     } catch (e) {
       new Notice('❌ エクスポート失敗: ' + String(e))
+    }
+  }
+
+  /**
+   * profile（自己紹介）テンプレを編集可能 pptx で書き出す。
+   * pptxgenjs ネイティブ生成（Electron renderer 内で完結、Chrome/marp-cli/LibreOffice 不要）。
+   * 現状はテンプレ（DEFAULT_SELF_INTRO）。実データは将来 JSON / deck frontmatter から差し替え。
+   */
+  private async exportProfilePptx(): Promise<void> {
+    const file = this.app.workspace.getActiveFile()
+    const base = (file ? file.path : 'selfintro.md').replace(/\.[^/.]+$/, '')
+    const path = `${base}.pptx`
+    try {
+      new Notice('編集可 pptx を書き出し中…')
+      const pptx = buildProfilePptx()
+      const out = await pptx.write({ outputType: 'arraybuffer' })
+      // Electron renderer(browser経路)では ArrayBuffer。node 経路の Buffer/Uint8Array はコピーして正規化。
+      const ab: ArrayBuffer =
+        out instanceof ArrayBuffer
+          ? out
+          : (Uint8Array.from(out as Uint8Array).buffer as ArrayBuffer)
+      await this.vaultIO.writeBinary(path, ab)
+      new Notice(`✅ 編集可 pptx を書き出しました: ${path}`)
+    } catch (e) {
+      new Notice('❌ pptx 書き出し失敗: ' + String(e))
     }
   }
 
