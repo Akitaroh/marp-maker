@@ -29,7 +29,7 @@ describe('toThemeEntries', () => {
 })
 
 describe('availableThemeNames', () => {
-  it('バンドル(whitepaper-a4/oyakudachi/whitepaper-pro) + 組込 + カスタム（重複除去）', () => {
+  it('バンドル(whitepaper-a4/oyakudachi/whitepaper-pro/monochrome) + 組込 + カスタム（重複除去）', () => {
     const names = availableThemeNames([
       { name: 'mybrand', css: '/* @theme mybrand */' },
     ])
@@ -37,6 +37,7 @@ describe('availableThemeNames', () => {
       'whitepaper-a4',
       'oyakudachi',
       'whitepaper-pro',
+      'monochrome',
       'default',
       'gaia',
       'uncover',

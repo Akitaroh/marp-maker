@@ -10,8 +10,8 @@ export interface ThemeEntry {
   css: string
 }
 
-/** バンドル同梱テーマ名（whitepaper-a4 = シンプル / oyakudachi = お役立ち資料ページ型 / whitepaper-pro = SAIRU 構成忠実） */
-export const BUNDLED_THEME_NAMES = ['whitepaper-a4', 'oyakudachi', 'whitepaper-pro'] as const
+/** バンドル同梱テーマ名（whitepaper-a4 = シンプル / oyakudachi = お役立ち資料ページ型 / whitepaper-pro = SAIRU 構成忠実 / monochrome = モダンミニマル無彩色） */
+export const BUNDLED_THEME_NAMES = ['whitepaper-a4', 'oyakudachi', 'whitepaper-pro', 'monochrome'] as const
 
 /** marp-core 組込テーマ名 */
 export const BUILTIN_THEME_NAMES = ['default', 'gaia', 'uncover'] as const
