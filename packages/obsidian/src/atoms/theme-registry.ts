@@ -10,8 +10,8 @@ export interface ThemeEntry {
   css: string
 }
 
-/** バンドル同梱テーマ名 */
-export const BUNDLED_THEME_NAME = 'whitepaper-a4'
+/** バンドル同梱テーマ名（whitepaper-a4 = シンプル / oyakudachi = お役立ち資料ページ型） */
+export const BUNDLED_THEME_NAMES = ['whitepaper-a4', 'oyakudachi'] as const
 
 /** marp-core 組込テーマ名 */
 export const BUILTIN_THEME_NAMES = ['default', 'gaia', 'uncover'] as const
@@ -34,11 +34,11 @@ export function toThemeEntries(cssList: string[]): ThemeEntry[] {
 
 /**
  * 選択可能なテーマ名一覧（重複除去）。
- * whitepaper-a4（バンドル）→ 組込（default/gaia/uncover）→ カスタムの順。
+ * バンドル（whitepaper-a4 / oyakudachi）→ 組込（default/gaia/uncover）→ カスタムの順。
  */
 export function availableThemeNames(customThemes: ThemeEntry[]): string[] {
   const names = [
-    BUNDLED_THEME_NAME,
+    ...BUNDLED_THEME_NAMES,
     ...BUILTIN_THEME_NAMES,
     ...customThemes.map((t) => t.name),
   ]

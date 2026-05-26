@@ -20,6 +20,7 @@ import {
   type MarpMakerSettings,
 } from './atoms/settings-tab'
 import { WHITEPAPER_A4_CSS } from './themes/whitepaper-a4'
+import { OYAKUDACHI_CSS } from './themes/oyakudachi'
 import './styles.css'
 
 export default class MarpMakerPlugin extends Plugin {
@@ -94,7 +95,7 @@ export default class MarpMakerPlugin extends Plugin {
       this.settings.themesFolder,
     )
     this.renderImpl = createRenderMarp({
-      themes: [WHITEPAPER_A4_CSS, ...this.customThemeCss],
+      themes: [WHITEPAPER_A4_CSS, OYAKUDACHI_CSS, ...this.customThemeCss],
       defaultThemeName: this.settings.defaultTheme,
     })
   }

@@ -29,12 +29,13 @@ describe('toThemeEntries', () => {
 })
 
 describe('availableThemeNames', () => {
-  it('whitepaper-a4 + 組込 + カスタム（重複除去）', () => {
+  it('バンドル(whitepaper-a4/oyakudachi) + 組込 + カスタム（重複除去）', () => {
     const names = availableThemeNames([
       { name: 'mybrand', css: '/* @theme mybrand */' },
     ])
     expect(names).toEqual([
       'whitepaper-a4',
+      'oyakudachi',
       'default',
       'gaia',
       'uncover',

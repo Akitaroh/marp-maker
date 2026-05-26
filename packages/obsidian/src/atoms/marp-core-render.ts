@@ -34,7 +34,9 @@ export function createRenderMarp(
   const themes = opts?.themes ?? []
   const defaultThemeName = opts?.defaultThemeName
   return (markdown: string): RenderResult => {
-    const marp = new Marp()
+    // html: true — お役立ち資料テーマのカード/2カラム等で HTML-in-markdown を使う。
+    // deck は利用者自身が書く信頼入力 + プレビューは sandbox iframe（script 不可）なので許容。
+    const marp = new Marp({ html: true })
     for (const css of themes) {
       try {
         marp.themeSet.add(css)

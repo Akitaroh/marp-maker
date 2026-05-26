@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { createRenderMarp } from './marp-core-render'
 import { WHITEPAPER_A4_CSS } from '../themes/whitepaper-a4'
+import { OYAKUDACHI_CSS } from '../themes/oyakudachi'
 
 describe('createRenderMarp', () => {
   it('marp markdown を {html, css} に描画する', () => {
@@ -48,5 +49,20 @@ describe('createRenderMarp', () => {
   it('不正な theme css でも throw せず他テーマ/組込で描画継続', () => {
     const render = createRenderMarp({ themes: ['これは正しくない theme css {{{'] })
     expect(() => render('# Hi')).not.toThrow()
+  })
+
+  it('oyakudachi テーマが登録・描画できる（ブランド色が css に出る）', () => {
+    const render = createRenderMarp({
+      themes: [OYAKUDACHI_CSS],
+      defaultThemeName: 'oyakudachi',
+    })
+    const { css } = render('# Hello')
+    expect(css).toContain('--brand') // CSS 変数でブランド色定義
+  })
+
+  it('html: true — HTML-in-markdown（カード等）が剥がされず出力される', () => {
+    const render = createRenderMarp()
+    const { html } = render('<div class="card">中身</div>')
+    expect(html).toContain('class="card"')
   })
 })
