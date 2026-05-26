@@ -257,6 +257,54 @@ section.chapter h2::before { display: none; }
   display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 10pt;
 }
 
+/* 目次: <div class="toc"> 内に .toc-item（.no 番号 / .ttl 見出し / .pg ページ番号、.pg は任意）*/
+.toc { margin: 18px 0; }
+.toc-item {
+  display: flex; align-items: center; gap: 20px;
+  padding: 17px 6px; border-bottom: 1px solid var(--line);
+}
+.toc-item:last-child { border-bottom: none; }
+.toc-item .no {
+  flex: 0 0 auto; min-width: 50px; font-size: 23pt; font-weight: 800; line-height: 1;
+  color: var(--brand);
+  background: linear-gradient(135deg, var(--brand) 0%, var(--accent) 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.toc-item .ttl { flex: 1 1 auto; font-size: 14pt; font-weight: 700; color: var(--ink); }
+.toc-item .pg { flex: 0 0 auto; color: var(--muted); font-size: 11pt; font-weight: 700; letter-spacing: .05em; }
+
+/* 導入事例カード: <div class="case"> （.case-head 企業ヘッダー / .case-body 課題→施策→効果 / .case-quote 顧客の声）
+   ロゴは "LOGO" プレースホルダ。実ロゴ埋込はライセンス/商標の都合で利用者に委ねる */
+.case {
+  border: 1px solid var(--line); border-radius: 16px; overflow: hidden;
+  box-shadow: 0 10px 24px rgba(var(--shadow),.07); margin: 16px 0;
+}
+.case-head {
+  display: flex; align-items: center; gap: 16px; padding: 18px 22px;
+  background: linear-gradient(135deg, var(--brand) 0%, #122a52 100%); color: #fff;
+}
+.case-head .logo {
+  flex: 0 0 auto; width: 52px; height: 52px; border-radius: 12px; background: rgba(255,255,255,.15);
+  display: flex; align-items: center; justify-content: center; font-size: 9.5pt; font-weight: 700; color: #fff;
+}
+.case-head .company { display: block; font-size: 15pt; font-weight: 800; }
+.case-head .industry { display: block; font-size: 10.5pt; color: #cfe2f6; margin-top: 2px; }
+.case-body { padding: 20px 22px; }
+.case-row { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 14px; }
+.case-row:last-child { margin-bottom: 0; }
+.case-row .label {
+  flex: 0 0 auto; width: 56px; text-align: center; padding: 5px 0; border-radius: 6px;
+  font-size: 10pt; font-weight: 800; background: var(--tint); color: var(--brand);
+}
+.case-row.result .label { background: var(--accent); color: #fff; }
+.case-row p { margin: 0; font-size: 11.5pt; line-height: 1.65; }
+.case-row.result p strong { color: var(--accent); font-size: 13pt; }
+.case-quote {
+  margin: 0; padding: 16px 22px; background: var(--tint); border-top: 1px solid var(--line);
+  font-style: italic; color: var(--brand); font-size: 12pt; border-left: none;
+}
+.case-quote cite { display: block; font-style: normal; color: var(--muted); font-size: 10pt; margin-top: 6px; }
+
 /* CTA: _class: cta */
 section.cta { background: var(--tint); display: flex; flex-direction: column; justify-content: center; }
 section.cta h1 { font-size: 26pt; }
