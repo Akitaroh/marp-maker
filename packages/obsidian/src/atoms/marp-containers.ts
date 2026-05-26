@@ -56,8 +56,14 @@ function esc(s: string | undefined): string {
 /** 値系コンテナ: open/close を属性から組み立て、body は renderInline で挟む。 */
 const INLINE: Record<string, { open: (p: ParsedInfo) => string; close: (p: ParsedInfo) => string }> = {
   donut: {
-    open: (p) =>
-      `<div class="donut-item"><div class="donut" style="--val:${esc(p.attrs.val)}"><span class="pct">${esc(p.attrs.val)}<span class="u">%</span></span></div><span class="cap">`,
+    // CSS conic-gradient ではなく SVG リング（stroke-dasharray）で描く。
+    // conic-gradient は PDF 化時に shading として埋め込まれ、一部 PDF ビューア（pdf.js 等）が
+    // ピンクに誤描画する。SVG circle stroke はベクターパスなので全ビューアで正しく出る。
+    // r=15.915 → 円周≒100 なので stroke-dasharray="val 100" が val% の弧になる。
+    open: (p) => {
+      const v = esc(p.attrs.val)
+      return `<div class="donut-item"><div class="donut"><svg class="donut-svg" viewBox="0 0 36 36" aria-hidden="true"><circle class="donut-track" cx="18" cy="18" r="15.915"/><circle class="donut-ring" cx="18" cy="18" r="15.915" stroke-dasharray="${v} 100"/></svg><span class="pct">${v}<span class="u">%</span></span></div><span class="cap">`
+    },
     close: () => `</span></div>`,
   },
   kpi: {

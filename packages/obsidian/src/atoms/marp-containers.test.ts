@@ -61,9 +61,10 @@ describe('applyMarpContainers — 構造系', () => {
 })
 
 describe('applyMarpContainers — 値系', () => {
-  it('donut: --val とリング、本文が cap に', () => {
+  it('donut: SVG リング(stroke-dasharray=val)、本文が cap に', () => {
     const html = render(':::donut val=68\n負担が大きいと回答\n:::')
-    expect(html).toContain('--val:68')
+    expect(html).toContain('stroke-dasharray="68 100"')
+    expect(html).toContain('class="donut-ring"')
     expect(html).toContain('class="pct"')
     expect(html).toContain('class="cap"')
     expect(html).toContain('負担が大きいと回答')

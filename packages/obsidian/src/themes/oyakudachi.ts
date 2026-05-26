@@ -174,14 +174,16 @@ section.chapter h2::before { display: none; }
 
 /* ===== データ表現（単一の数字/比率の強調。複数スライスの内訳・比較グラフは mermaid 領域）===== */
 
-/* ドーナツ%リング: <div class="donut" style="--val:68"><span class="pct">68<span class="u">%</span></span></div> */
+/* ドーナツ%リング（SVG stroke リング）: <div class="donut"><svg…><circle .donut-ring stroke-dasharray="68 100"/></svg><span class="pct">68%…
+   conic-gradient は PDF 化時に shading 埋込で一部ビューア（pdf.js 等）がピンク誤描画するため SVG ベクターで描く */
 .donut {
-  --val: 50; --size: 150px;
-  width: var(--size); height: var(--size); border-radius: 50%; position: relative;
+  --size: 150px;
+  width: var(--size); height: var(--size); position: relative;
   display: flex; align-items: center; justify-content: center;
-  background: conic-gradient(var(--accent) 0 calc(var(--val) * 1%), var(--line) calc(var(--val) * 1%) 100%);
 }
-.donut::before { content: ''; position: absolute; inset: 15px; background: #fff; border-radius: 50%; }
+.donut-svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.donut-track { fill: none; stroke: var(--line); stroke-width: 3.6; }
+.donut-ring { fill: none; stroke: var(--accent); stroke-width: 3.6; stroke-linecap: round; }
 .donut .pct { position: relative; z-index: 1; font-size: 30pt; font-weight: 800; color: var(--brand); }
 .donut .pct .u { font-size: 15pt; font-weight: 700; }
 

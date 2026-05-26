@@ -121,9 +121,11 @@ section::after { color: var(--muted); font-size: 9pt; bottom: 28px; right: var(-
 .stat .unit { font-size: 28pt; color: var(--accent); }
 .stat .label { display: block; color: var(--muted); font-size: 13pt; margin-top: 12px; }
 
-/* ドーナツ%（charcoal リング on 淡グレートラック）*/
-.donut { --val: 50; --size: 148px; width: var(--size); height: var(--size); border-radius: 50%; position: relative; display: flex; align-items: center; justify-content: center; background: conic-gradient(var(--brand) 0 calc(var(--val) * 1%), var(--line) calc(var(--val) * 1%) 100%); }
-.donut::before { content: ''; position: absolute; inset: 16px; background: #fff; border-radius: 50%; }
+/* ドーナツ%（SVG リング＝PDF 全ビューアで正しく描画。conic-gradient は pdf.js 等でピンク化）*/
+.donut { --size: 148px; width: var(--size); height: var(--size); position: relative; display: flex; align-items: center; justify-content: center; }
+.donut-svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.donut-track { fill: none; stroke: var(--line); stroke-width: 3.8; }
+.donut-ring { fill: none; stroke: var(--brand); stroke-width: 3.8; stroke-linecap: round; }
 .donut .pct { position: relative; z-index: 1; font-size: 28pt; font-weight: 800; color: var(--brand); }
 .donut .pct .u { font-size: 14pt; font-weight: 700; color: var(--accent); }
 .donut-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; justify-items: center; margin: 20px 0; }
