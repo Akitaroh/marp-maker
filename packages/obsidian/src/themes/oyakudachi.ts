@@ -250,12 +250,19 @@ section.chapter h2::before { display: none; }
   box-shadow: 0 1px 3px rgba(var(--shadow),.05);
 }
 
-/* ロゴウォール: <div class="logos"> */
-.logos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 14px 0; }
+/* ロゴウォール（導入企業）: <div class="logos"> 内にセル（直下要素、ロゴ画像 or 社名）。
+   列数変種 .cols-3 / .cols-5、任意キャプション .logos-note */
+.logos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 16px 0; }
+.logos.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.logos.cols-5 { grid-template-columns: repeat(5, 1fr); }
 .logos > * {
-  border: 1px solid var(--line); border-radius: 8px; height: 64px;
-  display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 10pt;
+  background: #fff; border: 1px solid var(--line); border-radius: 10px; height: 72px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--muted); font-size: 10.5pt; font-weight: 700; letter-spacing: .04em;
+  box-shadow: 0 2px 5px rgba(var(--shadow),.05);
 }
+.logos > * img { max-width: 78%; max-height: 60%; object-fit: contain; }
+.logos-note { text-align: center; color: var(--muted); font-size: 10.5pt; margin-top: 10px; }
 
 /* 目次: <div class="toc"> 内に .toc-item（.no 番号 / .ttl 見出し / .pg ページ番号、.pg は任意）*/
 .toc { margin: 18px 0; }
