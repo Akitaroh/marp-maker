@@ -7,6 +7,7 @@
  * Atom-MarpBoard と同パターンを packages/obsidian に複製（N=2、既存 core 非改変）。
  */
 import { Marp } from '@marp-team/marp-core'
+import { applyMarpContainers } from './marp-containers'
 
 export interface RenderResult {
   html: string
@@ -37,6 +38,13 @@ export function createRenderMarp(
     // html: true — お役立ち資料テーマのカード/2カラム等で HTML-in-markdown を使う。
     // deck は利用者自身が書く信頼入力 + プレビューは sandbox iframe（script 不可）なので許容。
     const marp = new Marp({ html: true })
+    // `:::` コンテナ記法 → コンポーネント HTML 展開（Atom-MarpContainers）。
+    // 失敗しても deck 描画は継続（`:::` は素通り）する graceful degradation。
+    try {
+      applyMarpContainers(marp.markdown)
+    } catch {
+      /* container 拡張に失敗しても描画継続 */
+    }
     for (const css of themes) {
       try {
         marp.themeSet.add(css)
