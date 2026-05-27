@@ -4,6 +4,7 @@
  *
  * 方針（非破壊・Obsidian 特性活用）:
  *   1) printToPDF spike: Electron の webContents.printToPDF で PDF 化（Chrome 不要）。
+ *      ページサイズはスライド実寸に一致（parseSlideSize、A4 縦でも 16:9 横でも崩れない）。
  *      marp-cli（= Atom-MarpRenderer, core）は使わない（毎回 Chrome 起動が重い）。
  *   2) フォールバック: PDF エンジンに到達できない環境（mobile / remote 不可）では
  *      self-contained な HTML を書き出す（必ず成果物が出る）。
@@ -24,13 +25,31 @@ export interface ExportResult {
   path: string
 }
 
-/** marp の {html, css} を、1 スライド = 1 ページの A4 印刷用 self-contained HTML に組む */
-export function buildExportHtml(rendered: RenderResult): string {
+/**
+ * marp の svg viewBox からスライド実寸(px @96dpi)を取得。
+ * A4 縦=793x1122 / 16:9=1280x720 等、テーマ/サイズに依らずページを実寸に合わせるため。
+ * 取れなければ A4(793x1122) フォールバック。
+ */
+export function parseSlideSize(html: string): { w: number; h: number } {
+  const m = html.match(/viewBox="0 0 (\d+(?:\.\d+)?) (\d+(?:\.\d+)?)"/)
+  if (m) return { w: Math.round(parseFloat(m[1])), h: Math.round(parseFloat(m[2])) }
+  return { w: 793, h: 1122 }
+}
+
+/**
+ * marp の {html, css} を、1 スライド = 1 ページの印刷用 self-contained HTML に組む。
+ * ページサイズは**スライド実寸に一致**させる（縦横どちらでも、A4 でも 16:9 でも崩れない）。
+ */
+export function buildExportHtml(
+  rendered: RenderResult,
+  size: { w: number; h: number } = parseSlideSize(rendered.html),
+): string {
+  const { w, h } = size
   const printCss = [
-    '@page { size: A4 portrait; margin: 0; }',
+    `@page { size: ${w}px ${h}px; margin: 0; }`,
     'html,body{margin:0;padding:0;background:#fff;}',
-    // marp の各スライド SVG をページ全幅 + ページ送り（印刷時 1 枚 1 ページ）
-    'svg[data-marpit-svg]{display:block;width:100%;height:auto;page-break-after:always;break-after:page;}',
+    // 各スライド SVG をページ実寸ぴったり + ページ送り（印刷時 1 枚 1 ページ）
+    `svg[data-marpit-svg]{display:block;width:${w}px;height:${h}px;page-break-after:always;break-after:page;}`,
     'svg[data-marpit-svg]:last-of-type{page-break-after:auto;break-after:auto;}',
   ].join('\n')
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${rendered.css}\n${printCss}</style></head><body>${rendered.html}</body></html>`
@@ -47,7 +66,10 @@ export function derivePath(mdPath: string, ext: 'pdf' | 'html'): string {
  * 到達できなければ null を返し、呼び出し側が HTML フォールバックする。
  * require('electron') は関数内に閉じる（mobile では top-level import で壊さないため）。
  */
-async function renderPdfViaElectron(docHtml: string): Promise<ArrayBuffer | null> {
+async function renderPdfViaElectron(
+  docHtml: string,
+  size: { w: number; h: number },
+): Promise<ArrayBuffer | null> {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const req: ((id: string) => unknown) | undefined = (
     globalThis as { require?: (id: string) => unknown }
@@ -85,10 +107,12 @@ async function renderPdfViaElectron(docHtml: string): Promise<ArrayBuffer | null
     await win.loadURL(
       'data:text/html;charset=utf-8,' + encodeURIComponent(docHtml),
     )
+    // ページサイズをスライド実寸に一致させる。Electron printToPDF の pageSize は
+    // **inch 単位**（microns ではない、実機検証で確定）。CSS px @96dpi → inch = px/96。
+    // これで A4 縦でも 16:9 横でも、PDF ページがスライド規定サイズと一致する。
     const pdf = await win.webContents.printToPDF({
       printBackground: true,
-      pageSize: 'A4',
-      landscape: false,
+      pageSize: { width: size.w / 96, height: size.h / 96 },
       margins: { marginType: 'none' },
     })
     const u8 = new Uint8Array(pdf)
@@ -107,11 +131,12 @@ export async function exportDeck(
   deps: ExportDeps,
 ): Promise<ExportResult> {
   const rendered = deps.renderMarp(markdown)
-  const docHtml = buildExportHtml(rendered)
+  const size = parseSlideSize(rendered.html)
+  const docHtml = buildExportHtml(rendered, size)
 
-  // 1) printToPDF spike（Electron / Chrome 不要）
+  // 1) printToPDF spike（Electron / Chrome 不要）。ページサイズはスライド実寸
   try {
-    const pdf = await renderPdfViaElectron(docHtml)
+    const pdf = await renderPdfViaElectron(docHtml, size)
     if (pdf) {
       const path = derivePath(mdPath, 'pdf')
       await deps.vaultIO.writeBinary(path, pdf)

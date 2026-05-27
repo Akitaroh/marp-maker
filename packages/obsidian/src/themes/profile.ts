@@ -6,7 +6,13 @@
  * ページ型は per-slide `_class`（cover / profile / skills / hobby / closing）+ 生 HTML（html:true）。
  * 縦型 B2B 群（oyakudachi / whitepaper-pro / monochrome = A4）とは別系統の横型テーマ。
  * 設計: Atom-ProfileTheme.md
+ *
+ * PDF 安全性: 大きなグラデ（表紙パネル/締め背景）は **焼いた PNG 背景**で出す。
+ * CSS gradient は printToPDF で PDF シェーディング化され、一部ビューア（pdf.js 等）が
+ * ピンク誤描画するため（[[conic-gradientはPDFビューアでピンク化する]] と同根）。
  */
+import { COVER_GRAD, CLOSING_GRAD } from '../pptx/profile-pptx-assets'
+
 export const PROFILE_THEME_NAME = 'profile'
 
 export const PROFILE_CSS = `/* @theme profile */
@@ -48,7 +54,7 @@ section li::marker { color: var(--sea); }
 /* 本文系は上揃え + 見出しの海色アクセント（短いグラデ線 + 砂色の罫）*/
 section:not(.cover):not(.closing) { align-content: start; }
 section:not(.cover):not(.closing) > h2 { position: relative; padding-bottom: 18px; }
-section:not(.cover):not(.closing) > h2::before { content: ''; position: absolute; left: 0; bottom: 0; width: 50px; height: 4px; border-radius: 3px; background: linear-gradient(90deg, var(--sea-bright), var(--sea)); }
+section:not(.cover):not(.closing) > h2::before { content: ''; position: absolute; left: 0; bottom: 0; width: 50px; height: 4px; border-radius: 3px; background: var(--sea); }
 section:not(.cover):not(.closing) > h2::after { content: ''; position: absolute; left: 60px; right: 0; bottom: 1.5px; height: 1px; background: var(--line); }
 
 /* 写真スロット（実写真は中に <img>。プレースホルダは海色タイル）*/
@@ -58,14 +64,14 @@ section:not(.cover):not(.closing) > h2::after { content: ''; position: absolute;
 /* ===== 表紙: 左テキスト / 右写真（海グラデ）===== */
 section.cover { padding: 0; display: grid; grid-template-columns: 1.04fr 0.96fr; overflow: hidden; }
 section.cover .cv-text { position: relative; padding: 0 76px; display: flex; flex-direction: column; justify-content: center; background: var(--paper); }
-section.cover .cv-text::before { content: ''; position: absolute; left: -130px; bottom: -130px; width: 380px; height: 380px; border-radius: 50%; background: radial-gradient(circle, rgba(45,214,212,.22), rgba(45,214,212,0) 70%); }
+/* 放射グローは PDF シェーディング化でピンク化するため省略（焼いた PNG 背景の方針）*/
 section.cover .cv-text > * { position: relative; }
 section.cover .cv-eyebrow { color: var(--sea-deep); font-weight: 700; font-size: 14px; letter-spacing: .22em; margin-bottom: 22px; display: flex; align-items: center; gap: 12px; }
-section.cover .cv-eyebrow::before { content: ''; width: 34px; height: 3px; border-radius: 2px; background: linear-gradient(90deg, var(--sea-bright), var(--sea)); }
+section.cover .cv-eyebrow::before { content: ''; width: 34px; height: 3px; border-radius: 2px; background: var(--sea); }
 section.cover h1 { font-size: 56px; line-height: 1.16; margin: 0 0 18px; }
 section.cover .cv-role { color: var(--sea-deep); font-size: 21px; font-weight: 700; font-family: var(--disp); margin-bottom: 30px; }
 section.cover .cv-meta { color: var(--muted); font-size: 15px; border-top: 1px solid var(--line); padding-top: 18px; }
-section.cover .cv-photo { position: relative; background: linear-gradient(150deg, var(--sea-bright) 0%, var(--sea) 52%, var(--sea-deep) 100%); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; letter-spacing: .16em; font-size: 15px; }
+section.cover .cv-photo { position: relative; background: url('${COVER_GRAD}') center/cover; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; letter-spacing: .16em; font-size: 15px; }
 section.cover .cv-photo img { width: 100%; height: 100%; object-fit: cover; }
 
 /* ===== プロフィール: 左写真 / 右 bio + 情報 ===== */
@@ -80,7 +86,7 @@ section.profile .pf-bio { font-size: 17px; line-height: 1.95; color: var(--ink);
 /* ===== 強み: 編集的カード（上端アクセント + 大きな海色番号 + 柔らかい影）===== */
 .cols3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; margin-top: 40px; }
 .scard { position: relative; background: var(--paper); border: 1px solid var(--line); border-radius: 22px; padding: 44px 34px 38px; min-height: 300px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 2px 4px rgba(20,40,45,.03), 0 28px 56px -22px rgba(10,143,166,.24); }
-.scard::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px; background: linear-gradient(90deg, var(--sea-bright), var(--sea)); }
+.scard::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px; background: var(--sea); }
 .scard .num { font-family: var(--disp); font-size: 52px; font-weight: 900; line-height: 1; color: var(--sea); letter-spacing: .02em; }
 .scard .num::after { content: ''; display: block; width: 36px; height: 3px; border-radius: 2px; background: var(--line); margin: 18px 0 22px; }
 .scard h3 { font-size: 22px; margin: 0 0 12px; color: var(--ink); }
@@ -93,8 +99,8 @@ section.profile .pf-bio { font-size: 17px; line-height: 1.95; color: var(--ink);
 .gitem p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.7; }
 
 /* ===== 締め: 海グラデ + 波の光 ===== */
-section.closing { padding: 0 96px; display: flex; flex-direction: column; justify-content: center; color: #fff; overflow: hidden; background: linear-gradient(135deg, var(--sea-bright) 0%, var(--sea) 42%, var(--sea-deep) 100%); }
-section.closing::before { content: ''; position: absolute; right: -150px; top: -150px; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,.20), rgba(255,255,255,0) 70%); }
+section.closing { padding: 0 96px; display: flex; flex-direction: column; justify-content: center; color: #fff; overflow: hidden; background: url('${CLOSING_GRAD}') center/cover; }
+/* 波の放射グローは PDF シェーディング化でピンク化するため省略 */
 section.closing > * { position: relative; }
 section.closing .cl-eyebrow { color: rgba(255,255,255,.85); font-weight: 700; font-size: 14px; letter-spacing: .22em; margin-bottom: 18px; }
 section.closing h1 { color: #fff; font-size: 46px; line-height: 1.3; margin: 0 0 20px; }
