@@ -9,7 +9,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "gen:pptx": "esbuild scripts/gen-profile-pptx.ts --bundle --platform=node --format=cjs --outfile=node_modules/.cache/gen-profile-pptx.cjs && node node_modules/.cache/gen-profile-pptx.cjs"
+    "gen:pptx": "esbuild scripts/gen-profile-pptx.ts --bundle --platform=node --format=cjs --outfile=node_modules/.cache/gen-profile-pptx.cjs && node node_modules/.cache/gen-profile-pptx.cjs",
+    "gen:assets": "esbuild scripts/gen-assets.ts --bundle --platform=node --format=cjs --outfile=node_modules/.cache/gen-assets.cjs && node node_modules/.cache/gen-assets.cjs"
   },
   "dependencies": {
     "@marp-team/marp-core": "^4.3.0",
@@ -17,8 +18,10 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "@types/pngjs": "^6.0.5",
     "esbuild": "^0.24.0",
     "obsidian": "^1.7.2",
+    "pngjs": "^7.0.0",
     "typescript": "^5.6.0",
     "vitest": "^2.1.0"
   }

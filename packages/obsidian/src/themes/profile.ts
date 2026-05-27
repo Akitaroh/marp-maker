@@ -65,7 +65,9 @@ section:not(.cover):not(.closing) > h2::after { content: ''; position: absolute;
 section.cover { padding: 0; display: grid; grid-template-columns: 1.04fr 0.96fr; overflow: hidden; }
 section.cover .cv-text { position: relative; padding: 0 76px; display: flex; flex-direction: column; justify-content: center; background: var(--paper); }
 /* 砂浜に差す光: 焼いた透過 PNG グロー（CSS radial-gradient は PDF でピンク化するため画像で）*/
-section.cover .cv-text::before { content: ''; position: absolute; left: -130px; bottom: -130px; width: 380px; height: 380px; background: url('${COVER_GLOW}') center / 100% 100% no-repeat; }
+/* glow PNG (600px) は中心が透過 0 まで落ちる対称ラジアル。中心をスライド左下角(0,720)に重ねる
+   = box の可視側エッジ(右 x=300 / 上 y=420)は alpha 0、clip 線(x=0 / y=720)は中心を通る → 角の clean な四半円グロー（四角・半円・見切れが出ない） */
+section.cover .cv-text::before { content: ''; position: absolute; left: -300px; bottom: -300px; width: 600px; height: 600px; background: url('${COVER_GLOW}') center / 100% 100% no-repeat; }
 section.cover .cv-text > * { position: relative; }
 section.cover .cv-eyebrow { color: var(--sea-deep); font-weight: 700; font-size: 14px; letter-spacing: .22em; margin-bottom: 22px; display: flex; align-items: center; gap: 12px; }
 section.cover .cv-eyebrow::before { content: ''; width: 34px; height: 3px; border-radius: 2px; background: var(--sea); }
@@ -102,7 +104,7 @@ section.profile .pf-bio { font-size: 17px; line-height: 1.95; color: var(--ink);
 /* ===== 締め: 海グラデ + 波の光 ===== */
 section.closing { padding: 0 96px; display: flex; flex-direction: column; justify-content: center; color: #fff; overflow: hidden; background: url('${CLOSING_GRAD}') center/cover; }
 /* 波の光: 焼いた透過 PNG グロー */
-section.closing::before { content: ''; position: absolute; right: -150px; top: -150px; width: 500px; height: 500px; background: url('${CLOSING_GLOW}') center / 100% 100% no-repeat; }
+section.closing::before { content: ''; position: absolute; right: -310px; top: -310px; width: 620px; height: 620px; background: url('${CLOSING_GLOW}') center / 100% 100% no-repeat; }
 section.closing > * { position: relative; }
 section.closing .cl-eyebrow { color: rgba(255,255,255,.85); font-weight: 700; font-size: 14px; letter-spacing: .22em; margin-bottom: 18px; }
 section.closing h1 { color: #fff; font-size: 46px; line-height: 1.3; margin: 0 0 20px; }
