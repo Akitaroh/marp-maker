@@ -133,7 +133,7 @@ export function buildProfilePptx(content: SelfIntroContent = DEFAULT_SELF_INTRO)
   const cover = pptx.addSlide()
   cover.background = { color: PAPER }
   // 砂浜の光（焼いた透過グロー、左下・テキスト背面）。スライド端でクリップされないよう内側に
-  cover.addImage({ data: COVER_GLOW, x: 0, y: 4.16, w: 3.33, h: 3.33 })
+  cover.addImage({ data: COVER_GLOW, x: -1.35, y: 4.9, w: 3.96, h: 3.96 })
   // 右: 海色パネル（写真枠）
   if (content.coverPhoto) {
     cover.addImage({ path: content.coverPhoto, x: 6.95, y: 0, w: 6.383, h: 7.5, sizing: { type: 'cover', w: 6.383, h: 7.5 } })
@@ -212,7 +212,7 @@ export function buildProfilePptx(content: SelfIntroContent = DEFAULT_SELF_INTRO)
   // 海ターコイズのグラデ背景（画像。pptx shape は solid のみ＝グラデは画像で）
   closing.addImage({ data: CLOSING_GRAD, x: 0, y: 0, w: 13.333, h: 7.5, sizing: { type: 'cover', w: 13.333, h: 7.5 } })
   // 波の光（焼いた透過グロー＝theme と統一）。スライド端でクリップされないよう内側に
-  closing.addImage({ data: CLOSING_GLOW, x: 9.17, y: 0, w: 4.17, h: 4.17 })
+  closing.addImage({ data: CLOSING_GLOW, x: 9.69, y: -1.56, w: 5.21, h: 5.21 })
   closing.addText(content.closing.eyebrow ?? 'MESSAGE', { x: 0.95, y: 2.3, w: 6, h: 0.35, fontSize: 12, bold: true, color: 'D7F5F5', charSpacing: 3, fontFace: BODY, valign: 'middle' })
   closing.addText(content.closing.title, { x: 0.95, y: 2.78, w: 11.4, h: 1.0, fontSize: 34, bold: true, color: WHITE, fontFace: DISP, valign: 'middle' })
   closing.addText(content.closing.body, { x: 0.95, y: 3.98, w: 9.6, h: 1.6, fontSize: 17, color: WHITE, fontFace: BODY, lineSpacingMultiple: 1.45, valign: 'top' })
