@@ -7,7 +7,7 @@
  * 純ロジック（obsidian/electron 非依存）。設計: Atom-ProfilePptxRenderer.md
  */
 import PptxGenJS from 'pptxgenjs'
-import { COVER_GRAD, CLOSING_GRAD } from './profile-pptx-assets'
+import { COVER_GRAD, CLOSING_GRAD, COVER_GLOW, CLOSING_GLOW } from './profile-assets'
 
 // ===== profile テーマ色（hex, # なし）=====
 const SEA = '0FB8C0'
@@ -132,6 +132,8 @@ export function buildProfilePptx(content: SelfIntroContent = DEFAULT_SELF_INTRO)
   // ===== 1. 表紙 =====
   const cover = pptx.addSlide()
   cover.background = { color: PAPER }
+  // 砂浜の光（焼いた透過グロー、左下・テキスト背面）
+  cover.addImage({ data: COVER_GLOW, x: -1.4, y: 5.5, w: 4.2, h: 4.2 })
   // 右: 海色パネル（写真枠）
   if (content.coverPhoto) {
     cover.addImage({ path: content.coverPhoto, x: 6.95, y: 0, w: 6.383, h: 7.5, sizing: { type: 'cover', w: 6.383, h: 7.5 } })
@@ -209,8 +211,8 @@ export function buildProfilePptx(content: SelfIntroContent = DEFAULT_SELF_INTRO)
   closing.background = { color: SEA } // フォールバック
   // 海ターコイズのグラデ背景（画像。pptx shape は solid のみ＝グラデは画像で）
   closing.addImage({ data: CLOSING_GRAD, x: 0, y: 0, w: 13.333, h: 7.5, sizing: { type: 'cover', w: 13.333, h: 7.5 } })
-  // 波の光
-  closing.addShape(pptx.ShapeType.ellipse, { x: 8.6, y: -2.2, w: 7.2, h: 7.2, fill: { color: WHITE, transparency: 88 }, line: { type: 'none' } })
+  // 波の光（焼いた透過グロー＝theme と統一）
+  closing.addImage({ data: CLOSING_GLOW, x: 8.6, y: -2.2, w: 7.2, h: 7.2 })
   closing.addText(content.closing.eyebrow ?? 'MESSAGE', { x: 0.95, y: 2.3, w: 6, h: 0.35, fontSize: 12, bold: true, color: 'D7F5F5', charSpacing: 3, fontFace: BODY, valign: 'middle' })
   closing.addText(content.closing.title, { x: 0.95, y: 2.78, w: 11.4, h: 1.0, fontSize: 34, bold: true, color: WHITE, fontFace: DISP, valign: 'middle' })
   closing.addText(content.closing.body, { x: 0.95, y: 3.98, w: 9.6, h: 1.6, fontSize: 17, color: WHITE, fontFace: BODY, lineSpacingMultiple: 1.45, valign: 'top' })

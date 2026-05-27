@@ -11,7 +11,7 @@
  * CSS gradient は printToPDF で PDF シェーディング化され、一部ビューア（pdf.js 等）が
  * ピンク誤描画するため（[[conic-gradientはPDFビューアでピンク化する]] と同根）。
  */
-import { COVER_GRAD, CLOSING_GRAD } from '../pptx/profile-pptx-assets'
+import { COVER_GRAD, CLOSING_GRAD, COVER_GLOW, CLOSING_GLOW } from '../pptx/profile-assets'
 
 export const PROFILE_THEME_NAME = 'profile'
 
@@ -64,7 +64,8 @@ section:not(.cover):not(.closing) > h2::after { content: ''; position: absolute;
 /* ===== 表紙: 左テキスト / 右写真（海グラデ）===== */
 section.cover { padding: 0; display: grid; grid-template-columns: 1.04fr 0.96fr; overflow: hidden; }
 section.cover .cv-text { position: relative; padding: 0 76px; display: flex; flex-direction: column; justify-content: center; background: var(--paper); }
-/* 放射グローは PDF シェーディング化でピンク化するため省略（焼いた PNG 背景の方針）*/
+/* 砂浜に差す光: 焼いた透過 PNG グロー（CSS radial-gradient は PDF でピンク化するため画像で）*/
+section.cover .cv-text::before { content: ''; position: absolute; left: -130px; bottom: -130px; width: 380px; height: 380px; background: url('${COVER_GLOW}') center/contain no-repeat; }
 section.cover .cv-text > * { position: relative; }
 section.cover .cv-eyebrow { color: var(--sea-deep); font-weight: 700; font-size: 14px; letter-spacing: .22em; margin-bottom: 22px; display: flex; align-items: center; gap: 12px; }
 section.cover .cv-eyebrow::before { content: ''; width: 34px; height: 3px; border-radius: 2px; background: var(--sea); }
@@ -100,7 +101,8 @@ section.profile .pf-bio { font-size: 17px; line-height: 1.95; color: var(--ink);
 
 /* ===== 締め: 海グラデ + 波の光 ===== */
 section.closing { padding: 0 96px; display: flex; flex-direction: column; justify-content: center; color: #fff; overflow: hidden; background: url('${CLOSING_GRAD}') center/cover; }
-/* 波の放射グローは PDF シェーディング化でピンク化するため省略 */
+/* 波の光: 焼いた透過 PNG グロー */
+section.closing::before { content: ''; position: absolute; right: -150px; top: -150px; width: 500px; height: 500px; background: url('${CLOSING_GLOW}') center/contain no-repeat; }
 section.closing > * { position: relative; }
 section.closing .cl-eyebrow { color: rgba(255,255,255,.85); font-weight: 700; font-size: 14px; letter-spacing: .22em; margin-bottom: 18px; }
 section.closing h1 { color: #fff; font-size: 46px; line-height: 1.3; margin: 0 0 20px; }
